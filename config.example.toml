@@ -1,0 +1,52 @@
+# Ferroclaw Configuration
+# Copy to ~/.config/ferroclaw/config.toml
+
+[agent]
+default_model = "claude-sonnet-4-20250514"
+max_iterations = 30
+token_budget = 200000
+
+[providers.anthropic]
+api_key_env = "ANTHROPIC_API_KEY"
+
+# [providers.openai]
+# api_key_env = "OPENAI_API_KEY"
+# base_url = "https://api.openai.com/v1"
+
+# Zai GLM — models: glm-5, glm-5-turbo, glm-4.5, glm-4.6, glm-4.7
+# Set default_model = "glm-5" above to use
+# [providers.zai]
+# api_key_env = "ZAI_API_KEY"
+# base_url = "https://api.z.ai/api/paas/v4"
+
+# OpenRouter — models: provider/model (e.g. "openai/gpt-4o", "anthropic/claude-sonnet-4")
+# Set default_model = "anthropic/claude-sonnet-4" above to use
+# [providers.openrouter]
+# api_key_env = "OPENROUTER_API_KEY"
+# base_url = "https://openrouter.ai/api/v1"
+# site_url = "https://your-app.com"    # optional, for OpenRouter rankings
+# site_name = "Your App"               # optional, for OpenRouter rankings
+
+[security]
+default_capabilities = ["fs_read", "net_outbound", "memory_read", "memory_write"]
+require_skill_signatures = true
+audit_enabled = true
+
+[gateway]
+bind = "127.0.0.1"
+port = 8420
+# bearer_token_env = "FERROCLAW_TOKEN"
+
+# [telegram]
+# bot_token_env = "TELEGRAM_BOT_TOKEN"
+# allowed_chat_ids = []
+
+[mcp_servers.filesystem]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"]
+
+# [mcp_servers.github]
+# command = "npx"
+# args = ["-y", "@modelcontextprotocol/server-github"]
+# [mcp_servers.github.env]
+# GITHUB_TOKEN = "${GITHUB_TOKEN}"

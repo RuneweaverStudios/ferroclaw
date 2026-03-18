@@ -1,0 +1,25 @@
+/target
+
+# Secrets — NEVER commit
+.env
+.env.*
+*.env
+
+# Database & runtime data
+*.db
+*.db-journal
+audit.jsonl
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Build artifacts
+*.dSYM/

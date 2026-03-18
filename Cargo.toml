@@ -1,0 +1,79 @@
+[package]
+name = "ferroclaw"
+version = "0.1.0"
+edition = "2024"
+description = "A security-first, lightweight AI agent with native MCP and DietMCP compression"
+license = "MIT"
+
+[dependencies]
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+
+# CLI
+clap = { version = "4", features = ["derive"] }
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.8"
+
+# HTTP client
+reqwest = { version = "0.12", features = ["json", "stream", "blocking"] }
+
+# SSE streaming
+eventsource-stream = "0.2"
+futures-core = "0.3"
+futures-util = "0.3"
+
+# Database
+rusqlite = { version = "0.31", features = ["bundled", "modern_sqlite"] }
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+
+# Security
+sha2 = "0.10"
+ed25519-dalek = { version = "2", features = ["rand_core"] }
+rand = "0.8"
+
+# Error handling
+thiserror = "2"
+anyhow = "1"
+
+# Regex (lightweight, no-std compatible)
+regex-lite = "0.1"
+
+# TUI
+ratatui = "0.29"
+crossterm = "0.28"
+
+# Misc
+uuid = { version = "1", features = ["v4"] }
+chrono = { version = "0.4", features = ["serde"] }
+dirs = "6"
+tempfile = "3"
+tokio-stream = "0.1"
+pin-project-lite = "0.2"
+bytes = "1"
+
+[dev-dependencies]
+tokio-test = "0.4"
+criterion = { version = "0.5", features = ["html_reports"] }
+
+[[bench]]
+name = "diet_compression"
+harness = false
+
+[[bench]]
+name = "memory_store"
+harness = false
+
+[[bench]]
+name = "security_audit"
+harness = false
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true
