@@ -201,6 +201,10 @@ impl TelegramBot {
         }
 
         // Markdown parse failed — retry as plain text
+        tracing::debug!(
+            "Telegram Markdown send failed: {}, retrying as plain text",
+            resp.description.as_deref().unwrap_or("unknown")
+        );
         let params = SendMessageParams {
             chat_id,
             text: text.to_string(),
@@ -384,11 +388,14 @@ impl TelegramBot {
                     // Send response
                     match response {
                         Ok((text, _events)) => {
-                            if let Err(e) = bot.send_long_message(chat_id, &text, None).await {
-                                tracing::error!("Telegram send error: {e}");
+                            tracing::info!("Telegram [{chat_id}] agent responded ({} chars)", text.len());
+                            match bot.send_long_message(chat_id, &text, None).await {
+                                Ok(_) => tracing::info!("Telegram [{chat_id}] message delivered"),
+                                Err(e) => tracing::error!("Telegram [{chat_id}] send failed: {e}"),
                             }
                         }
                         Err(e) => {
+                            tracing::error!("Telegram [{chat_id}] agent error: {e}");
                             let err_msg = format!("Error: {e}");
                             let _ = bot.send_message(chat_id, &err_msg, None).await;
                         }
