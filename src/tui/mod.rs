@@ -255,6 +255,9 @@ async fn run_loop(
             Event::Resize(_, _) => {
                 // Terminal will redraw on next iteration
             }
+            Event::Paste(_) => {
+                // Base TUI mode ignores paste payloads.
+            }
         }
     }
 }

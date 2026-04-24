@@ -210,6 +210,7 @@ fn run_loop(
                                 continue;
                             }
                             Ok(Event::Resize(_, _)) => {}
+                            Ok(Event::Paste(_)) => {}
                             Ok(Event::Key(key_event)) => {
                                 use crossterm::event::KeyCode;
                                 use crossterm::event::KeyModifiers;
@@ -342,6 +343,7 @@ fn run_loop(
                 }
             }
             Event::Resize(_, _) => {}
+            Event::Paste(_) => {}
         }
     }
 }

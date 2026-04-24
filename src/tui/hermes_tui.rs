@@ -16,6 +16,9 @@ use hermes_ui::draw as draw_hermes;
 use crate::agent::AgentLoop;
 use crate::agent::r#loop::AgentEvent;
 use crate::config::Config;
+use crate::tui::glitter_verbs::{
+    elapsed_ms_since, glitter_verb_for_llm_pending, glitter_verb_for_tool_call,
+};
 use crate::types::Message;
 
 use crossterm::event::{DisableMouseCapture, EnableMouseCapture};
@@ -29,6 +32,7 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
+use std::time::Instant;
 
 #[derive(Debug, Clone)]
 struct ExternalSkill {
@@ -44,6 +48,55 @@ enum SlashAction {
     Send(String),
 }
 
+const BASE_SLASH_COMMANDS: [&str; 6] = [
+    "/help",
+    "/skills",
+    "/skills rescan",
+    "/active-skills",
+    "/use",
+    "/unuse",
+];
+
+fn percent_decode(input: &str) -> String {
+    let bytes = input.as_bytes();
+    let mut i = 0usize;
+    let mut out: Vec<u8> = Vec::with_capacity(bytes.len());
+    while i < bytes.len() {
+        if bytes[i] == b'%' && i + 2 < bytes.len() {
+            let h1 = bytes[i + 1] as char;
+            let h2 = bytes[i + 2] as char;
+            if let (Some(a), Some(b)) = (h1.to_digit(16), h2.to_digit(16)) {
+                out.push(((a << 4) + b) as u8);
+                i += 3;
+                continue;
+            }
+        }
+        if bytes[i] == b'+' {
+            out.push(b' ');
+        } else {
+            out.push(bytes[i]);
+        }
+        i += 1;
+    }
+    String::from_utf8_lossy(&out).to_string()
+}
+
+fn normalize_pasted_payload(raw: &str) -> String {
+    raw.lines()
+        .map(|line| {
+            let trimmed = line.trim();
+            if let Some(rest) = trimmed.strip_prefix("file://localhost") {
+                percent_decode(rest)
+            } else if let Some(rest) = trimmed.strip_prefix("file://") {
+                percent_decode(rest)
+            } else {
+                line.to_string()
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
 fn discover_external_skills() -> SkillCatalog {
     let mut out = BTreeMap::new();
     let home = std::env::var("HOME").ok().map(PathBuf::from);
@@ -54,12 +107,20 @@ fn discover_external_skills() -> SkillCatalog {
         roots.push(home.join(".hermes/skills"));
         roots.push(home.join(".claude/workspace/skills"));
         roots.push(home.join(".claude/skills"));
+        roots.push(home.join(".claude/plugins/cache"));
+        roots.push(home.join(".cursor/skills"));
+        roots.push(home.join(".cursor/skills-cursor"));
+        roots.push(home.join(".cursor/plugins/cache"));
         roots.push(home.join(".openclaw"));
         roots.push(home.join(".openclaw/skills"));
     }
     if let Some(cwd) = &cwd {
         roots.push(cwd.join(".claude/workspace/skills"));
         roots.push(cwd.join(".claude/skills"));
+        roots.push(cwd.join(".claude/plugins/cache"));
+        roots.push(cwd.join(".cursor/skills"));
+        roots.push(cwd.join(".cursor/skills-cursor"));
+        roots.push(cwd.join(".cursor/plugins/cache"));
         roots.push(cwd.join(".openclaw"));
         roots.push(cwd.join(".openclaw/skills"));
         roots.push(cwd.join("skills"));
@@ -94,18 +155,72 @@ fn scan_skill_md(root: &Path, out: &mut SkillCatalog) {
             {
                 continue;
             }
-            if let Ok(content) = fs::read_to_string(&path) {
-                let name = skill_name_from_path_or_frontmatter(&path, &content);
+            if let Some((content, resolved_path)) = load_skill_content(&path) {
+                let name = skill_name_from_path_or_frontmatter(&resolved_path, &content);
                 out.insert(
                     name.clone(),
                     ExternalSkill {
                         name,
-                        path: path.clone(),
+                        path: resolved_path,
                         content,
                     },
                 );
             }
         }
+    }
+}
+
+fn load_skill_content(path: &Path) -> Option<(String, PathBuf)> {
+    if let Ok(content) = fs::read_to_string(path) {
+        return Some((content, path.to_path_buf()));
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        if let Some(resolved) = resolve_macos_alias_path(path) {
+            if let Ok(content) = fs::read_to_string(&resolved) {
+                return Some((content, resolved));
+            }
+        }
+    }
+
+    if let Ok(resolved) = fs::canonicalize(path) {
+        if resolved != path {
+            if let Ok(content) = fs::read_to_string(&resolved) {
+                return Some((content, resolved));
+            }
+        }
+    }
+
+    None
+}
+
+#[cfg(target_os = "macos")]
+fn resolve_macos_alias_path(path: &Path) -> Option<PathBuf> {
+    use std::process::Command;
+
+    let path_str = path.to_str()?;
+    let escaped = path_str.replace('\\', "\\\\").replace('"', "\\\"");
+    let script = format!(
+        "POSIX path of (original item of (POSIX file \"{}\" as alias))",
+        escaped
+    );
+
+    let output = Command::new("osascript")
+        .arg("-e")
+        .arg(script)
+        .output()
+        .ok()?;
+
+    if !output.status.success() {
+        return None;
+    }
+
+    let resolved = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    if resolved.is_empty() {
+        None
+    } else {
+        Some(PathBuf::from(resolved))
     }
 }
 
@@ -124,6 +239,98 @@ fn skill_name_from_path_or_frontmatter(path: &Path, content: &str) -> String {
         .and_then(|s| s.to_str())
         .unwrap_or("skill")
         .to_string()
+}
+
+fn slash_menu_items_for_input(
+    input: &str,
+    catalog: &SkillCatalog,
+    active_skills: &BTreeMap<String, ExternalSkill>,
+) -> Vec<String> {
+    let trimmed = input.trim();
+    if !trimmed.starts_with('/') {
+        return Vec::new();
+    }
+
+    let lower = trimmed.to_lowercase();
+
+    // Context-sensitive completions for /use and /unuse
+    if lower.starts_with("/use ") {
+        let query = trimmed[5..].trim().to_lowercase();
+        let mut items = Vec::new();
+        for skill in catalog.values() {
+            if query.is_empty() || skill.name.to_lowercase().contains(&query) {
+                items.push(format!("/use {}", skill.name));
+            }
+        }
+        return items;
+    }
+
+    if lower.starts_with("/unuse ") {
+        let query = trimmed[7..].trim().to_lowercase();
+        let mut items = vec!["/unuse all".to_string()];
+        for skill in active_skills.values() {
+            if query.is_empty() || skill.name.to_lowercase().contains(&query) {
+                items.push(format!("/unuse {}", skill.name));
+            }
+        }
+        return items;
+    }
+
+    // Orca-style slash palette: show built-in commands + direct /<skill-slug> entries.
+    let mut items: Vec<String> = BASE_SLASH_COMMANDS
+        .iter()
+        .filter(|cmd| cmd.starts_with(&lower))
+        .map(|cmd| cmd.to_string())
+        .collect();
+
+    for skill in catalog.values() {
+        let candidate = format!("/{}", skill.name);
+        if candidate.to_lowercase().starts_with(&lower) {
+            items.push(candidate);
+        }
+    }
+
+    items.truncate(180);
+    items
+}
+
+fn refresh_slash_menu(
+    app: &mut App,
+    catalog: &SkillCatalog,
+    active_skills: &BTreeMap<String, ExternalSkill>,
+) {
+    let input = app.input_text();
+    let items = slash_menu_items_for_input(&input, catalog, active_skills);
+    app.slash_menu_items = items;
+    app.slash_menu_visible = !app.slash_menu_items.is_empty();
+    if app.slash_menu_items.is_empty() {
+        app.slash_menu_selected = 0;
+        app.slash_menu_scroll = 0;
+        return;
+    }
+    if app.slash_menu_selected >= app.slash_menu_items.len() {
+        app.slash_menu_selected = app.slash_menu_items.len() - 1;
+    }
+    let window = 8usize;
+    if app.slash_menu_selected < app.slash_menu_scroll {
+        app.slash_menu_scroll = app.slash_menu_selected;
+    } else if app.slash_menu_selected >= app.slash_menu_scroll + window {
+        app.slash_menu_scroll = app.slash_menu_selected.saturating_sub(window - 1);
+    }
+}
+
+fn accept_selected_slash_menu_item(app: &mut App) -> bool {
+    if !app.slash_menu_visible || app.slash_menu_items.is_empty() {
+        return false;
+    }
+    let picked = app.slash_menu_items[app.slash_menu_selected].clone();
+    let with_space = if picked.starts_with("/use") || picked.starts_with("/unuse") {
+        picked
+    } else {
+        format!("{picked} ")
+    };
+    app.set_input_text(with_space);
+    true
 }
 
 fn handle_slash_command(
@@ -146,6 +353,7 @@ fn handle_slash_command(
         "/skills" => {
             if matches!(parts.next(), Some("rescan")) {
                 *catalog = discover_external_skills();
+                app.discovered_skills_count = catalog.len();
                 app.chat_history.push(ChatEntry::SystemInfo(format!(
                     "Rescanned skills: found {} SKILL.md files.",
                     catalog.len()
@@ -221,6 +429,30 @@ fn handle_slash_command(
             }
             SlashAction::Continue
         }
+        _ if cmd.starts_with('/') => {
+            // Orca-style direct skill slash activation: /<skill> [optional prompt]
+            let skill_slug = cmd.trim_start_matches('/');
+            if let Some(skill) = catalog.get(skill_slug).cloned() {
+                active_skills.insert(skill.name.clone(), skill.clone());
+                app.chat_history.push(ChatEntry::SystemInfo(format!(
+                    "Activated skill: {} ({})",
+                    skill.name,
+                    skill.path.display()
+                )));
+                let remainder = parts.collect::<Vec<_>>().join(" ");
+                if remainder.trim().is_empty() {
+                    SlashAction::Continue
+                } else {
+                    SlashAction::Send(remainder)
+                }
+            } else {
+                app.chat_history.push(ChatEntry::Error(format!(
+                    "Unknown slash command or skill: {}. Use /skills to list discovered skills.",
+                    cmd
+                )));
+                SlashAction::Continue
+            }
+        }
         _ => {
             let mut final_input = raw.to_string();
             if !active_skills.is_empty() {
@@ -245,7 +477,7 @@ fn handle_slash_command(
 
 /// Run the Hermes-style TUI REPL. Takes ownership of the agent loop and config.
 pub async fn run_hermes_tui(mut agent_loop: AgentLoop, config: &Config) -> anyhow::Result<()> {
-    // Setup terminal
+    // Setup terminal in alternate screen so shell scrollback/output cannot corrupt the TUI frame.
     enable_raw_mode()?;
     let mut stdout = io::stdout();
     execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
@@ -259,33 +491,14 @@ pub async fn run_hermes_tui(mut agent_loop: AgentLoop, config: &Config) -> anyho
     let event_handler = EventHandler::new(250);
     let mut history: Vec<Message> = Vec::new();
     let mut skill_catalog = discover_external_skills();
+    app.discovered_skills_count = skill_catalog.len();
     let mut active_skills: BTreeMap<String, ExternalSkill> = BTreeMap::new();
 
     // Add Ferroclaw greeting
     app.chat_history.push(ChatEntry::AssistantMessage(
         "Hello! I'm Ferroclaw, your security-first AI assistant. How can I help you today?".into(),
     ));
-    app.chat_history.push(ChatEntry::SystemInfo(
-        "Scroll: mouse wheel, PgUp/PgDn, Shift+↑/Shift+↓, or plain ↑/↓ when input is empty. Ctrl+Home/Ctrl+End jump top/bottom.".into(),
-    ));
-    app.chat_history.push(ChatEntry::SystemInfo(format!(
-        "Slash commands enabled: /skills, /skills rescan, /use <skill>, /unuse <skill|all>, /active-skills ({} discovered)",
-        skill_catalog.len()
-    )));
 
-    // Add some sample tasks to demonstrate the sidebar
-    app.add_task(
-        "Review security logs".to_string(),
-        "Check for unusual access patterns".to_string(),
-    );
-    app.add_task(
-        "Update dependencies".to_string(),
-        "Run cargo update and review changes".to_string(),
-    );
-    app.add_task(
-        "Write documentation".to_string(),
-        "Document the new API endpoints".to_string(),
-    );
 
     // Main loop
     let result = run_loop(
@@ -303,8 +516,8 @@ pub async fn run_hermes_tui(mut agent_loop: AgentLoop, config: &Config) -> anyho
     disable_raw_mode()?;
     execute!(
         terminal.backend_mut(),
-        LeaveAlternateScreen,
-        DisableMouseCapture
+        DisableMouseCapture,
+        LeaveAlternateScreen
     )?;
     terminal.show_cursor()?;
 
@@ -321,19 +534,40 @@ async fn run_loop(
     active_skills: &mut BTreeMap<String, ExternalSkill>,
 ) -> anyhow::Result<()> {
     loop {
+        refresh_slash_menu(app, skill_catalog, active_skills);
+
         // Draw UI
         terminal.draw(|frame| draw_hermes(frame, app))?;
 
         // Handle events
         match event_handler.next()? {
             Event::Tick => {
-                // Nothing to do on tick, just redraw
+                app.advance_shimmer();
+                if app.is_running {
+                    let elapsed = elapsed_ms_since(app.run_started_at);
+                    app.verb = glitter_verb_for_llm_pending(elapsed, app.iteration);
+                }
             }
             Event::MouseScrollUp => {
                 app.scroll_up(3);
             }
             Event::MouseScrollDown => {
                 app.scroll_down(3);
+            }
+            Event::Paste(raw) => {
+                let mut pasted = normalize_pasted_payload(&raw);
+                if pasted.trim().is_empty() {
+                    continue;
+                }
+                // For drag/drop paths and URI pastes, separate from existing text with one space.
+                if !app.input_text().is_empty()
+                    && !app.input_text().ends_with(' ')
+                    && !pasted.starts_with('\n')
+                {
+                    pasted = format!(" {pasted}");
+                }
+                app.input_insert_text(&pasted);
+                continue;
             }
             Event::Key(key_event) => {
                 use crossterm::event::KeyCode;
@@ -356,6 +590,15 @@ async fn run_loop(
                 // Ctrl+L: clear chat
                 if modifiers.contains(KeyModifiers::CONTROL) && code == KeyCode::Char('l') {
                     app.clear_chat();
+                    continue;
+                }
+
+                // Esc: close slash command menu popup
+                if code == KeyCode::Esc {
+                    app.slash_menu_visible = false;
+                    app.slash_menu_items.clear();
+                    app.slash_menu_selected = 0;
+                    app.slash_menu_scroll = 0;
                     continue;
                 }
 
@@ -389,7 +632,7 @@ async fn run_loop(
                     continue;
                 }
 
-                // Enter: send message (Shift+Enter for newline)
+                // Enter: send message (Tab accepts slash suggestion)
                 if code == KeyCode::Enter && !modifiers.contains(KeyModifiers::SHIFT) {
                     let input = app.take_input();
                     if input.is_empty() {
@@ -408,22 +651,40 @@ async fn run_loop(
                         SlashAction::Send(effective_input) => {
                             app.set_status("Thinking...");
                             app.iteration = 0;
+                            app.is_running = true;
+                            app.is_error = false;
+                            app.run_started_at = Some(Instant::now());
+                            app.verb = glitter_verb_for_llm_pending(0, app.iteration);
 
                             // Redraw with the user message visible
                             terminal.draw(|frame| draw_hermes(frame, app))?;
 
-                            // Run the agent
-                            match agent_loop.run(&effective_input, history).await {
-                                Ok((response, events)) => {
-                                    process_agent_events(app, &events);
+                            // Stream agent events in real time via callback.
+                            let run_result = agent_loop
+                                .run_with_callback(&effective_input, history, |ev| {
+                                    apply_agent_event(app, ev);
+                                    let _ = terminal.draw(|frame| draw_hermes(frame, app));
+                                })
+                                .await;
+
+                            app.is_running = false;
+                            app.active_tools.clear();
+                            app.run_started_at = None;
+
+                            match run_result {
+                                Ok(response) => {
                                     app.chat_history.push(ChatEntry::AssistantMessage(response));
                                     app.set_status("Ready");
+                                    app.verb = "Ready".to_string();
                                 }
                                 Err(e) => {
                                     app.chat_history.push(ChatEntry::Error(format!("{e}")));
                                     app.set_status("Error");
+                                    app.is_error = true;
+                                    app.verb = "Error".to_string();
                                 }
                             }
+
                             app.scroll_to_bottom();
                             continue;
                         }
@@ -458,7 +719,12 @@ async fn run_loop(
                     continue;
                 }
                 if code == KeyCode::Up && !modifiers.contains(KeyModifiers::SHIFT) {
-                    if app.input_is_blank() {
+                    if app.slash_menu_visible {
+                        if app.slash_menu_selected > 0 {
+                            app.slash_menu_selected -= 1;
+                        }
+                        refresh_slash_menu(app, skill_catalog, active_skills);
+                    } else if app.input_is_blank() {
                         app.scroll_up(1);
                     } else {
                         app.input_move_up();
@@ -466,7 +732,12 @@ async fn run_loop(
                     continue;
                 }
                 if code == KeyCode::Down && !modifiers.contains(KeyModifiers::SHIFT) {
-                    if app.input_is_blank() {
+                    if app.slash_menu_visible {
+                        if app.slash_menu_selected + 1 < app.slash_menu_items.len() {
+                            app.slash_menu_selected += 1;
+                        }
+                        refresh_slash_menu(app, skill_catalog, active_skills);
+                    } else if app.input_is_blank() {
                         app.scroll_down(1);
                     } else {
                         app.input_move_down();
@@ -489,10 +760,15 @@ async fn run_loop(
                     app.input_char(c);
                 }
 
-                // Tab -> 4 spaces
+                // Tab: accept slash suggestion, else insert 4 spaces
                 if code == KeyCode::Tab {
-                    for _ in 0..4 {
-                        app.input_char(' ');
+                    if app.slash_menu_visible {
+                        let _ = accept_selected_slash_menu_item(app);
+                        refresh_slash_menu(app, skill_catalog, active_skills);
+                    } else {
+                        for _ in 0..4 {
+                            app.input_char(' ');
+                        }
                     }
                 }
             }
@@ -503,48 +779,61 @@ async fn run_loop(
     }
 }
 
+/// Apply a single AgentEvent into ChatEntry/metrics state.
+fn apply_agent_event(app: &mut App, event: &AgentEvent) {
+    match event {
+        AgentEvent::ToolCallStart { name, .. } => {
+            app.chat_history.push(ChatEntry::ToolCall {
+                name: name.clone(),
+                args: String::new(),
+            });
+            app.iteration += 1;
+            app.tool_call_count = app.tool_call_count.saturating_add(1);
+            app.add_active_tool(name.clone());
+            app.verb = glitter_verb_for_tool_call(name, app.tool_call_count, app.shimmer_phase);
+        }
+        AgentEvent::LlmRound { .. }
+        | AgentEvent::ModelToolChoice { .. }
+        | AgentEvent::ParallelToolBatch { .. } => {}
+        AgentEvent::ToolResult {
+            name,
+            content,
+            is_error,
+            ..
+        } => {
+            app.chat_history.push(ChatEntry::ToolResult {
+                name: name.clone(),
+                content: content.clone(),
+                is_error: *is_error,
+            });
+            app.remove_active_tool(name);
+            let elapsed = elapsed_ms_since(app.run_started_at);
+            app.verb = glitter_verb_for_llm_pending(elapsed, app.iteration);
+        }
+        AgentEvent::TokenUsage {
+            input,
+            output,
+            total_used,
+        } => {
+            app.tokens_used = *total_used;
+            app.last_input_tokens = *input;
+            app.last_output_tokens = *output;
+        }
+        AgentEvent::Error(msg) => {
+            app.chat_history.push(ChatEntry::Error(msg.clone()));
+            app.is_error = true;
+            app.verb = "Error".to_string();
+        }
+        AgentEvent::TextDelta(_) | AgentEvent::Done { .. } => {
+            // Text deltas are already captured in the final response
+        }
+    }
+}
+
 /// Process AgentEvents into ChatEntry items for the TUI.
 fn process_agent_events(app: &mut App, events: &[AgentEvent]) {
     for event in events {
-        match event {
-            AgentEvent::ToolCallStart { name, .. } => {
-                app.chat_history.push(ChatEntry::ToolCall {
-                    name: name.clone(),
-                    args: String::new(),
-                });
-                app.iteration += 1;
-            }
-            AgentEvent::LlmRound { .. }
-            | AgentEvent::ModelToolChoice { .. }
-            | AgentEvent::ParallelToolBatch { .. } => {}
-            AgentEvent::ToolResult {
-                name,
-                content,
-                is_error,
-                ..
-            } => {
-                app.chat_history.push(ChatEntry::ToolResult {
-                    name: name.clone(),
-                    content: content.clone(),
-                    is_error: *is_error,
-                });
-            }
-            AgentEvent::TokenUsage {
-                input,
-                output,
-                total_used,
-            } => {
-                app.tokens_used = *total_used;
-                app.last_input_tokens = *input;
-                app.last_output_tokens = *output;
-            }
-            AgentEvent::Error(msg) => {
-                app.chat_history.push(ChatEntry::Error(msg.clone()));
-            }
-            AgentEvent::TextDelta(_) | AgentEvent::Done { .. } => {
-                // Text deltas are already captured in the final response
-            }
-        }
+        apply_agent_event(app, event);
     }
 }
 
@@ -564,5 +853,55 @@ mod tests {
         let p = PathBuf::from("/tmp/demo-skill/SKILL.md");
         let c = "# title only";
         assert_eq!(skill_name_from_path_or_frontmatter(&p, c), "demo-skill");
+    }
+
+    #[test]
+    fn slash_menu_shows_base_commands_for_prefix() {
+        let catalog = BTreeMap::new();
+        let active = BTreeMap::new();
+        let items = slash_menu_items_for_input("/s", &catalog, &active);
+        assert!(items.contains(&"/skills".to_string()));
+        assert!(items.contains(&"/skills rescan".to_string()));
+    }
+
+    #[test]
+    fn slash_menu_expands_use_with_discovered_skills() {
+        let mut catalog = BTreeMap::new();
+        catalog.insert(
+            "demo-skill".into(),
+            ExternalSkill {
+                name: "demo-skill".into(),
+                path: PathBuf::from("/tmp/demo-skill/SKILL.md"),
+                content: "---\nname: demo-skill\n---".into(),
+            },
+        );
+        let active = BTreeMap::new();
+        let items = slash_menu_items_for_input("/use dem", &catalog, &active);
+        assert_eq!(items, vec!["/use demo-skill".to_string()]);
+    }
+
+    #[test]
+    fn slash_menu_lists_direct_skill_slugs() {
+        let mut catalog = BTreeMap::new();
+        catalog.insert(
+            "benchmark".into(),
+            ExternalSkill {
+                name: "benchmark".into(),
+                path: PathBuf::from("/Users/ghost/.claude/skills/benchmark/SKILL.md"),
+                content: "---\nname: benchmark\n---".into(),
+            },
+        );
+        let active = BTreeMap::new();
+        let items = slash_menu_items_for_input("/b", &catalog, &active);
+        assert!(items.contains(&"/benchmark".to_string()));
+    }
+
+    #[test]
+    fn normalize_pasted_file_uri_to_path() {
+        let raw = "file:///Users/ghost/Desktop/My%20Image.png";
+        assert_eq!(
+            normalize_pasted_payload(raw),
+            "/Users/ghost/Desktop/My Image.png"
+        );
     }
 }

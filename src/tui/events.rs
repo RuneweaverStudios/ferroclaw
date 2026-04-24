@@ -9,10 +9,12 @@ use std::sync::mpsc::RecvTimeoutError;
 use std::time::Duration;
 
 /// Events produced by the event handler.
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Event {
     /// A key was pressed.
     Key(KeyEvent),
+    /// Text paste payload (supports drag/drop path paste in many terminals).
+    Paste(String),
     /// Mouse wheel scrolled up.
     MouseScrollUp,
     /// Mouse wheel scrolled down.
@@ -115,8 +117,13 @@ impl EventHandler {
                                 return;
                             }
                         }
+                        Ok(event::Event::Paste(data)) => {
+                            if event_tx.send(Event::Paste(data)).is_err() {
+                                return;
+                            }
+                        }
                         Ok(_) => {
-                            // Ignore focus / paste events, etc.
+                            // Ignore focus events, etc.
                         }
                         Err(_) => {
                             return;

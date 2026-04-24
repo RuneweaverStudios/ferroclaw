@@ -246,6 +246,9 @@ async fn run_loop(
             Event::Resize(_, _) => {
                 // Terminal will redraw on next loop
             }
+            Event::Paste(_) => {
+                // Ignored in minimal TUI mode.
+            }
         }
     }
 }

@@ -29,10 +29,20 @@ async fn main() -> anyhow::Result<()> {
 
     // Initialize tracing
     let filter = if cli.verbose { "debug" } else { "info" };
-    tracing_subscriber::fmt()
-        .with_env_filter(filter)
-        .with_target(false)
-        .init();
+    let tui_mode = matches!(cli.command, Commands::Run { no_tui: false });
+    if tui_mode {
+        // Keep terminal clean during TUI rendering; raw-mode stderr/stdout logs corrupt the viewport.
+        tracing_subscriber::fmt()
+            .with_env_filter(filter)
+            .with_target(false)
+            .with_writer(std::io::sink)
+            .init();
+    } else {
+        tracing_subscriber::fmt()
+            .with_env_filter(filter)
+            .with_target(false)
+            .init();
+    }
 
     // Load config
     let config = config::load_config(cli.config.as_deref().map(Path::new))?;

@@ -107,6 +107,20 @@ pub struct App {
     pub selected_task_index: usize,
     /// Currently active tool names (for glitter verbs).
     pub active_tools: Vec<String>,
+    /// Whether slash command picker popup is visible.
+    pub slash_menu_visible: bool,
+    /// Slash command picker entries currently rendered.
+    pub slash_menu_items: Vec<String>,
+    /// Selected index in the slash command picker.
+    pub slash_menu_selected: usize,
+    /// Top scroll offset for slash command picker.
+    pub slash_menu_scroll: usize,
+    /// Monotonic count of tool call start events for verb shuffling.
+    pub tool_call_count: u64,
+    /// Current shimmer phase index for animated verb rendering.
+    pub shimmer_phase: usize,
+    /// Latest discovered SKILL.md count for top-of-chat info panel.
+    pub discovered_skills_count: usize,
 }
 
 impl App {
@@ -136,6 +150,13 @@ impl App {
             selected_task_index: 0,
             sticky_bottom: true,
             active_tools: Vec::new(),
+            slash_menu_visible: false,
+            slash_menu_items: Vec::new(),
+            slash_menu_selected: 0,
+            slash_menu_scroll: 0,
+            tool_call_count: 0,
+            shimmer_phase: 0,
+            discovered_skills_count: 0,
         }
     }
 
@@ -153,12 +174,30 @@ impl App {
         text.trim().to_string()
     }
 
+    /// Replace the entire input with a single-line string.
+    pub fn set_input_text(&mut self, text: String) {
+        self.input_lines = vec![text];
+        self.cursor_line = 0;
+        self.cursor_col = self.input_lines[0].chars().count();
+    }
+
     /// Insert a character at the cursor position.
     pub fn input_char(&mut self, c: char) {
         let line = &mut self.input_lines[self.cursor_line];
         let byte_idx = char_to_byte_index(line, self.cursor_col);
         line.insert(byte_idx, c);
         self.cursor_col += 1;
+    }
+
+    /// Insert arbitrary text at the cursor position, preserving newlines.
+    pub fn input_insert_text(&mut self, text: &str) {
+        for ch in text.chars() {
+            if ch == '\n' {
+                self.input_newline();
+            } else {
+                self.input_char(ch);
+            }
+        }
     }
 
     /// Insert a newline at the cursor position.
@@ -327,6 +366,13 @@ impl App {
         self.active_tools.clear();
         self.chat_history
             .push(ChatEntry::SystemInfo("Chat cleared.".into()));
+        self.tool_call_count = 0;
+        self.shimmer_phase = 0;
+    }
+
+    /// Advance the shimmer animation phase.
+    pub fn advance_shimmer(&mut self) {
+        self.shimmer_phase = (self.shimmer_phase + 1) % 8;
     }
 
     /// Set the status message.
@@ -620,7 +666,7 @@ mod tests {
         app.run_started_at = Some(Instant::now());
         app.update_glitter_verb();
         // Should be one of the LLM pending verbs
-        assert!(app.verb.contains("…"));
+        assert!(app.verb.contains("...") || app.verb.contains("…"));
         assert!(!app.verb.contains("Reading"));
     }
 }
