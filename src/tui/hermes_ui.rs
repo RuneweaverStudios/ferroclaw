@@ -139,9 +139,14 @@ fn draw_status_bar(frame: &mut Frame, app: &App, area: Rect) {
         app.verb.clone()
     };
 
+    let elapsed_secs = app
+        .run_started_at
+        .map(|started| started.elapsed().as_secs())
+        .unwrap_or(0);
+
     let status_text = format!(
         " {} | {}/{} | {} | {}s",
-        app.model_name, app.tokens_used, app.token_budget, verb, app.iteration,
+        app.model_name, app.tokens_used, app.token_budget, verb, elapsed_secs,
     );
 
     // Keep a blank row above the indicator for visual breathing room.
