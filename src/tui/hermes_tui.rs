@@ -59,9 +59,99 @@ const BASE_SLASH_COMMANDS: [&str; 7] = [
     "/unuse",
 ];
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+enum ModelMenuMode {
+    #[default]
+    None,
+    ProviderSelect,
+    OpenRouterModels,
+}
+
 #[derive(Default)]
 struct ModelCommandState {
+    mode: ModelMenuMode,
     openrouter_models: Vec<String>,
+}
+
+fn current_provider_name(config: &Config) -> String {
+    let model = config.agent.default_model.to_lowercase();
+    if config.providers.openrouter.is_some() && model.contains('/') {
+        return "openrouter".to_string();
+    }
+    if config.providers.openai.is_some() && (model.starts_with("gpt-") || model.starts_with("o")) {
+        return "openai".to_string();
+    }
+    if config.providers.anthropic.is_some() && model.starts_with("claude") {
+        return "anthropic".to_string();
+    }
+    if config.providers.zai.is_some() && model.starts_with("glm") {
+        return "zai".to_string();
+    }
+
+    if config.providers.openrouter.is_some() {
+        return "openrouter".to_string();
+    }
+    if config.providers.anthropic.is_some() {
+        return "anthropic".to_string();
+    }
+    if config.providers.openai.is_some() {
+        return "openai".to_string();
+    }
+    if config.providers.zai.is_some() {
+        return "zai".to_string();
+    }
+
+    "openrouter".to_string()
+}
+
+fn configured_provider_menu_items(config: &Config) -> Vec<String> {
+    let mut providers = Vec::new();
+    if config.providers.openrouter.is_some() {
+        providers.push("openrouter".to_string());
+    }
+    if config.providers.anthropic.is_some() {
+        providers.push("anthropic".to_string());
+    }
+    if config.providers.openai.is_some() {
+        providers.push("openai".to_string());
+    }
+    if config.providers.zai.is_some() {
+        providers.push("zai".to_string());
+    }
+
+    if providers.is_empty() {
+        providers.push("openrouter".to_string());
+    }
+
+    let current = current_provider_name(config);
+    if let Some(idx) = providers.iter().position(|p| p == &current) {
+        providers.swap(0, idx);
+    }
+
+    providers
+}
+
+fn model_menu_items_for_input(input: &str, config: &Config, state: &ModelCommandState) -> Vec<String> {
+    match state.mode {
+        ModelMenuMode::None => Vec::new(),
+        ModelMenuMode::ProviderSelect => {
+            let query = input.trim().to_lowercase();
+            configured_provider_menu_items(config)
+                .into_iter()
+                .filter(|provider| query.is_empty() || provider.contains(&query))
+                .collect()
+        }
+        ModelMenuMode::OpenRouterModels => {
+            let query = input.trim().to_lowercase();
+            state
+                .openrouter_models
+                .iter()
+                .filter(|model| query.is_empty() || model.to_lowercase().contains(&query))
+                .take(500)
+                .cloned()
+                .collect()
+        }
+    }
 }
 
 fn percent_decode(input: &str) -> String {
@@ -412,11 +502,17 @@ fn slash_menu_items_for_input(
 
 fn refresh_slash_menu(
     app: &mut App,
+    config: &Config,
+    model_state: &ModelCommandState,
     catalog: &SkillCatalog,
     active_skills: &BTreeMap<String, ExternalSkill>,
 ) {
     let input = app.input_text();
-    let items = slash_menu_items_for_input(&input, catalog, active_skills);
+    let items = if model_state.mode != ModelMenuMode::None {
+        model_menu_items_for_input(&input, config, model_state)
+    } else {
+        slash_menu_items_for_input(&input, catalog, active_skills)
+    };
     app.slash_menu_items = items;
     app.slash_menu_visible = !app.slash_menu_items.is_empty();
     if app.slash_menu_items.is_empty() {
@@ -449,6 +545,89 @@ fn accept_selected_slash_menu_item(app: &mut App) -> bool {
     true
 }
 
+fn handle_model_menu_enter(
+    app: &mut App,
+    config: &Config,
+    model_state: &mut ModelCommandState,
+    pending_gateway_restart_confirm: &mut bool,
+) -> bool {
+    if model_state.mode == ModelMenuMode::None {
+        return false;
+    }
+    if app.slash_menu_items.is_empty() {
+        app.chat_history
+            .push(ChatEntry::Error("No selectable items in model menu.".into()));
+        model_state.mode = ModelMenuMode::None;
+        app.slash_menu_visible = false;
+        return true;
+    }
+
+    let picked = app.slash_menu_items[app.slash_menu_selected].clone();
+    match model_state.mode {
+        ModelMenuMode::ProviderSelect => {
+            if picked == "openrouter" {
+                match fetch_openrouter_models(config) {
+                    Ok(models) => {
+                        model_state.openrouter_models = models;
+                        model_state.mode = ModelMenuMode::OpenRouterModels;
+                        app.set_input_text(String::new());
+                        app.slash_menu_selected = 0;
+                        app.slash_menu_scroll = 0;
+                        app.chat_history.push(ChatEntry::SystemInfo(
+                            "Provider selected: openrouter. Type to search models, use ↑/↓ to navigate, Enter to select."
+                                .into(),
+                        ));
+                    }
+                    Err(e) => {
+                        app.chat_history.push(ChatEntry::Error(format!(
+                            "Failed to load OpenRouter models: {e}"
+                        )));
+                        model_state.mode = ModelMenuMode::None;
+                        app.slash_menu_visible = false;
+                    }
+                }
+            } else {
+                model_state.mode = ModelMenuMode::None;
+                app.slash_menu_visible = false;
+                app.chat_history.push(ChatEntry::SystemInfo(format!(
+                    "Provider '{}' selected. Interactive model picker is currently implemented for openrouter only.",
+                    picked
+                )));
+            }
+            app.scroll_to_bottom();
+            true
+        }
+        ModelMenuMode::OpenRouterModels => {
+            let selected = picked;
+            match persist_default_model(config, &selected) {
+                Ok(path) => {
+                    app.model_name = selected.clone();
+                    *pending_gateway_restart_confirm = true;
+                    app.chat_history.push(ChatEntry::SystemInfo(format!(
+                        "Model set to {} and saved to {}\nRestart gateway to apply live runtime change? (y/n)",
+                        selected,
+                        path.display()
+                    )));
+                }
+                Err(e) => {
+                    app.chat_history.push(ChatEntry::Error(format!(
+                        "Failed to persist model change: {e}"
+                    )));
+                }
+            }
+            model_state.mode = ModelMenuMode::None;
+            app.slash_menu_visible = false;
+            app.slash_menu_items.clear();
+            app.slash_menu_selected = 0;
+            app.slash_menu_scroll = 0;
+            app.set_input_text(String::new());
+            app.scroll_to_bottom();
+            true
+        }
+        ModelMenuMode::None => false,
+    }
+}
+
 fn handle_slash_command(
     raw: &str,
     app: &mut App,
@@ -472,28 +651,11 @@ fn handle_slash_command(
         "/model" => {
             let target = parts.collect::<Vec<_>>().join(" ").trim().to_string();
             if target.is_empty() {
-                match fetch_openrouter_models(config) {
-                    Ok(models) => {
-                        model_state.openrouter_models = models;
-                        let total = model_state.openrouter_models.len();
-                        let mut s = format!(
-                            "OpenRouter models loaded: {}\nSelect with /model <number> or /model <provider/model-id>\n",
-                            total
-                        );
-                        for (idx, m) in model_state.openrouter_models.iter().take(40).enumerate() {
-                            s.push_str(&format!("{:>2}. {}\n", idx + 1, m));
-                        }
-                        if total > 40 {
-                            s.push_str(&format!("... and {} more\n", total - 40));
-                        }
-                        app.chat_history.push(ChatEntry::SystemInfo(s));
-                    }
-                    Err(e) => {
-                        app.chat_history.push(ChatEntry::Error(format!(
-                            "Failed to load OpenRouter models: {e}"
-                        )));
-                    }
-                }
+                model_state.mode = ModelMenuMode::ProviderSelect;
+                app.set_input_text(current_provider_name(config));
+                app.chat_history.push(ChatEntry::SystemInfo(
+                    "Model picker: choose provider (↑/↓ + Enter).".into(),
+                ));
                 return SlashAction::Continue;
             }
 
@@ -721,7 +883,7 @@ async fn run_loop(
     pending_gateway_restart_confirm: &mut bool,
 ) -> anyhow::Result<()> {
     loop {
-        refresh_slash_menu(app, skill_catalog, active_skills);
+        refresh_slash_menu(app, config, model_state, skill_catalog, active_skills);
 
         // Draw UI
         terminal.draw(|frame| draw_hermes(frame, app))?;
@@ -780,12 +942,14 @@ async fn run_loop(
                     continue;
                 }
 
-                // Esc: close slash command menu popup
+                // Esc: close slash/model menu popup
                 if code == KeyCode::Esc {
+                    model_state.mode = ModelMenuMode::None;
                     app.slash_menu_visible = false;
                     app.slash_menu_items.clear();
                     app.slash_menu_selected = 0;
                     app.slash_menu_scroll = 0;
+                    app.set_input_text(String::new());
                     continue;
                 }
 
@@ -821,6 +985,15 @@ async fn run_loop(
 
                 // Enter: send message (Tab accepts slash suggestion)
                 if code == KeyCode::Enter && !modifiers.contains(KeyModifiers::SHIFT) {
+                    if handle_model_menu_enter(
+                        app,
+                        config,
+                        model_state,
+                        pending_gateway_restart_confirm,
+                    ) {
+                        continue;
+                    }
+
                     let input = app.take_input();
                     if input.is_empty() {
                         continue;
@@ -943,7 +1116,7 @@ async fn run_loop(
                         if app.slash_menu_selected > 0 {
                             app.slash_menu_selected -= 1;
                         }
-                        refresh_slash_menu(app, skill_catalog, active_skills);
+                        refresh_slash_menu(app, config, model_state, skill_catalog, active_skills);
                     } else if app.input_is_blank() {
                         app.scroll_up(1);
                     } else {
@@ -956,7 +1129,7 @@ async fn run_loop(
                         if app.slash_menu_selected + 1 < app.slash_menu_items.len() {
                             app.slash_menu_selected += 1;
                         }
-                        refresh_slash_menu(app, skill_catalog, active_skills);
+                        refresh_slash_menu(app, config, model_state, skill_catalog, active_skills);
                     } else if app.input_is_blank() {
                         app.scroll_down(1);
                     } else {
@@ -983,8 +1156,10 @@ async fn run_loop(
                 // Tab: accept slash suggestion, else insert 4 spaces
                 if code == KeyCode::Tab {
                     if app.slash_menu_visible {
-                        let _ = accept_selected_slash_menu_item(app);
-                        refresh_slash_menu(app, skill_catalog, active_skills);
+                        if model_state.mode == ModelMenuMode::None {
+                            let _ = accept_selected_slash_menu_item(app);
+                        }
+                        refresh_slash_menu(app, config, model_state, skill_catalog, active_skills);
                     } else {
                         for _ in 0..4 {
                             app.input_char(' ');
@@ -1123,5 +1298,36 @@ mod tests {
             normalize_pasted_payload(raw),
             "/Users/ghost/Desktop/My Image.png"
         );
+    }
+
+    #[test]
+    fn model_provider_menu_starts_with_current_provider() {
+        let mut config = Config::default();
+        config.agent.default_model = "openai/gpt-5.3-codex".into();
+        config.providers.openrouter = Some(crate::config::OpenRouterConfig {
+            api_key_env: "OPENROUTER_API_KEY".into(),
+            base_url: "https://openrouter.ai/api/v1".into(),
+            site_url: None,
+            site_name: None,
+            max_tokens: 8192,
+        });
+
+        let items = configured_provider_menu_items(&config);
+        assert!(!items.is_empty());
+        assert_eq!(items[0], "openrouter");
+    }
+
+    #[test]
+    fn openrouter_model_menu_filters_by_search_query() {
+        let mut state = ModelCommandState::default();
+        state.mode = ModelMenuMode::OpenRouterModels;
+        state.openrouter_models = vec![
+            "openai/gpt-4o".into(),
+            "openai/gpt-4o-mini".into(),
+            "anthropic/claude-sonnet-4".into(),
+        ];
+
+        let items = model_menu_items_for_input("mini", &Config::default(), &state);
+        assert_eq!(items, vec!["openai/gpt-4o-mini".to_string()]);
     }
 }
