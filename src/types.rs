@@ -251,6 +251,41 @@ pub struct ProviderResponse {
     pub stop_reason: Option<String>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum RunStopReason {
+    AssistantFinal,
+    BudgetIterations,
+    BudgetTokens,
+    BudgetWallClock,
+    BudgetToolsIteration,
+    BudgetToolsTotal,
+    ErrorNonRetryable,
+    ErrorRetryExhausted,
+    ErrorEmptyFinalAfterTools,
+    Interrupted,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RunStopContract {
+    pub reason: RunStopReason,
+    pub iterations: u32,
+    pub tool_calls_total: u32,
+    pub elapsed_ms: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub notes: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RunOutcome {
+    pub text: String,
+    pub stop: RunStopContract,
+    pub input_tokens: u64,
+    pub output_tokens: u64,
+    pub total_tokens: u64,
+    pub tool_calls: u32,
+}
+
 /// Capabilities that tools can require and sessions can grant.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]

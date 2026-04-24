@@ -53,6 +53,10 @@ pub struct AgentConfig {
     pub max_iterations: u32,
     #[serde(default = "default_token_budget")]
     pub token_budget: u64,
+    #[serde(default = "default_max_tool_calls_per_iteration")]
+    pub max_tool_calls_per_iteration: u32,
+    #[serde(default = "default_max_tool_calls_total")]
+    pub max_tool_calls_total: u32,
     #[serde(default = "default_max_response_size")]
     pub max_response_size: usize,
     #[serde(default = "default_system_prompt")]
@@ -66,6 +70,8 @@ impl Default for AgentConfig {
             fallback_models: Vec::new(),
             max_iterations: default_max_iterations(),
             token_budget: default_token_budget(),
+            max_tool_calls_per_iteration: default_max_tool_calls_per_iteration(),
+            max_tool_calls_total: default_max_tool_calls_total(),
             max_response_size: default_max_response_size(),
             system_prompt: default_system_prompt(),
         }
@@ -80,6 +86,12 @@ fn default_max_iterations() -> u32 {
 }
 fn default_token_budget() -> u64 {
     200_000
+}
+fn default_max_tool_calls_per_iteration() -> u32 {
+    8
+}
+fn default_max_tool_calls_total() -> u32 {
+    64
 }
 fn default_max_response_size() -> usize {
     50_000
@@ -536,6 +548,8 @@ pub fn generate_example_config() -> String {
 default_model = "claude-sonnet-4-20250514"
 max_iterations = 30
 token_budget = 200000
+max_tool_calls_per_iteration = 8
+max_tool_calls_total = 64
 
 [providers.anthropic]
 api_key_env = "ANTHROPIC_API_KEY"
@@ -635,6 +649,8 @@ mod tests {
     fn test_default_config() {
         let config = Config::default();
         assert_eq!(config.agent.max_iterations, 30);
+        assert_eq!(config.agent.max_tool_calls_per_iteration, 8);
+        assert_eq!(config.agent.max_tool_calls_total, 64);
         assert_eq!(config.gateway.bind, "127.0.0.1");
         assert_eq!(config.gateway.port, 8420);
     }

@@ -176,12 +176,12 @@ async fn run_loop(
 
                     // Run agent
                     match agent_loop.run(&input, history).await {
-                        Ok((response, events)) => {
+                        Ok((outcome, events)) => {
                             process_events(app, &events);
-                            if !response.is_empty() {
+                            if !outcome.text.is_empty() {
                                 app.chat_history.push(ChatEntry::TranscriptLine(format!(
                                     "[Ferro] {}",
-                                    response.replace('\n', "\n     ")
+                                    outcome.text.replace('\n', "\n     ")
                                 )));
                             }
                             app.is_running = false;

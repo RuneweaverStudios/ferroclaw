@@ -13,7 +13,10 @@ use crate::mcp::diet::SkillSummary;
 use crate::mcp::registry::build_diet_context;
 use crate::provider::LlmProvider;
 use crate::tool::ToolRegistry;
-use crate::types::{CapabilitySet, Message, ToolCall, ToolDefinition, ToolSource};
+use crate::types::{
+    CapabilitySet, Message, Role, RunOutcome, RunStopContract, RunStopReason, ToolCall,
+    ToolDefinition, ToolSource,
+};
 use crate::websocket::{WsBroadcaster, WsEvent};
 
 /// The core agent loop.
@@ -120,19 +123,19 @@ impl AgentLoop {
     }
 
     /// Run the agent loop for a single user message.
-    /// Returns final assistant text response and all events.
+    /// Returns final assistant outcome and all events.
     pub async fn run(
         &mut self,
         user_message: &str,
         history: &mut Vec<Message>,
-    ) -> Result<(String, Vec<AgentEvent>)> {
+    ) -> Result<(RunOutcome, Vec<AgentEvent>)> {
         let mut events = Vec::new();
-        let text = self
+        let outcome = self
             .run_with_callback(user_message, history, |e: &AgentEvent| {
                 events.push(e.clone())
             })
             .await?;
-        Ok((text, events))
+        Ok((outcome, events))
     }
 
     /// Run the agent loop, invoking `on_event` for every [`AgentEvent`] as it occurs (streaming).
@@ -141,10 +144,15 @@ impl AgentLoop {
         user_message: &str,
         history: &mut Vec<Message>,
         mut on_event: F,
-    ) -> Result<String>
+    ) -> Result<RunOutcome>
     where
         F: FnMut(&AgentEvent),
     {
+        let started = std::time::Instant::now();
+        let mut tool_calls_total: u32 = 0;
+        let mut tool_batches: u32 = 0;
+        let mut last_input_tokens: u64 = 0;
+        let mut last_output_tokens: u64 = 0;
         // Broadcast agent thinking state
         self.broadcast_event(WsEvent::agent_state(
             self.agent_id.clone(),
@@ -173,6 +181,20 @@ impl AgentLoop {
         // Add user message
         history.push(Message::user(user_message));
 
+        // Invariant I1: provider input must contain at least one user message.
+        if !history.iter().any(|m| m.role == Role::User) {
+            return Ok(make_run_outcome(
+                "Stopped: invariant violated (missing user message).".to_string(),
+                RunStopReason::ErrorNonRetryable,
+                0,
+                tool_calls_total,
+                started.elapsed().as_millis() as u64,
+                last_input_tokens,
+                last_output_tokens,
+                Some("loop invariant I1 violated: no user message".to_string()),
+            ));
+        }
+
         // Get all tool definitions for provider, plus a built-in-only fallback set
         let all_tools = self.registry.definitions();
         let builtin_tools: Vec<ToolDefinition> = self
@@ -185,6 +207,8 @@ impl AgentLoop {
 
         let mut iteration = 0;
         let max_iterations = self.config.agent.max_iterations;
+        let max_tool_calls_per_iteration = self.config.agent.max_tool_calls_per_iteration;
+        let max_tool_calls_total = self.config.agent.max_tool_calls_total;
 
         loop {
             iteration += 1;
@@ -194,7 +218,16 @@ impl AgentLoop {
                     self.agent_id.clone(),
                     crate::websocket::AgentState::Error,
                 ));
-                return Err(FerroError::MaxIterations(max_iterations));
+                return Ok(make_run_outcome(
+                    "Stopped: max iterations reached.".to_string(),
+                    RunStopReason::BudgetIterations,
+                    max_iterations,
+                    tool_calls_total,
+                    started.elapsed().as_millis() as u64,
+                    last_input_tokens,
+                    last_output_tokens,
+                    None,
+                ));
             }
 
             // Check token budget
@@ -204,10 +237,19 @@ impl AgentLoop {
                     self.agent_id.clone(),
                     crate::websocket::AgentState::Error,
                 ));
-                return Err(FerroError::BudgetExhausted {
-                    used: self.context.tokens_used,
-                    limit: self.context.token_budget,
-                });
+                return Ok(make_run_outcome(
+                    "Stopped: token budget exhausted.".to_string(),
+                    RunStopReason::BudgetTokens,
+                    iteration,
+                    tool_calls_total,
+                    started.elapsed().as_millis() as u64,
+                    last_input_tokens,
+                    last_output_tokens,
+                    Some(format!(
+                        "used={} limit={}",
+                        self.context.tokens_used, self.context.token_budget
+                    )),
+                ));
             }
 
             // Prune context if needed
@@ -249,19 +291,53 @@ impl AgentLoop {
                                 "Context still too large; retrying with tools disabled".into(),
                             );
                             on_event(&ev);
-                            self.call_with_fallback(history, &[], reduced_max_tokens, &mut on_event)
-                                .await?
+                            match self
+                                .call_with_fallback(history, &[], reduced_max_tokens, &mut on_event)
+                                .await
+                            {
+                                Ok(resp) => resp,
+                                Err(final_err) => {
+                                    return Ok(outcome_from_error(
+                                        final_err,
+                                        iteration,
+                                        tool_calls_total,
+                                        started.elapsed().as_millis() as u64,
+                                        last_input_tokens,
+                                        last_output_tokens,
+                                    ));
+                                }
+                            }
                         }
-                        Err(other) => return Err(other),
+                        Err(other) => {
+                            return Ok(outcome_from_error(
+                                other,
+                                iteration,
+                                tool_calls_total,
+                                started.elapsed().as_millis() as u64,
+                                last_input_tokens,
+                                last_output_tokens,
+                            ));
+                        }
                     }
                 }
-                Err(other) => return Err(other),
+                Err(other) => {
+                    return Ok(outcome_from_error(
+                        other,
+                        iteration,
+                        tool_calls_total,
+                        started.elapsed().as_millis() as u64,
+                        last_input_tokens,
+                        last_output_tokens,
+                    ));
+                }
             };
 
             // Track usage
             if let Some(usage) = &response.usage {
                 self.context
                     .record_usage(usage.input_tokens, usage.output_tokens);
+                last_input_tokens = usage.input_tokens;
+                last_output_tokens = usage.output_tokens;
                 let u = AgentEvent::TokenUsage {
                     input: usage.input_tokens,
                     output: usage.output_tokens,
@@ -290,7 +366,48 @@ impl AgentLoop {
                         crate::websocket::AgentState::Idle,
                     ));
 
-                    return Ok(text);
+                    let (reason, final_text, note) = if text.trim().is_empty() && tool_batches > 0 {
+                        (
+                            RunStopReason::ErrorEmptyFinalAfterTools,
+                            "Stopped: assistant returned empty final text after tool execution.".to_string(),
+                            Some("loop invariant I4 violated: empty final text after tool batch".to_string()),
+                        )
+                    } else {
+                        (RunStopReason::AssistantFinal, text, None)
+                    };
+
+                    return Ok(make_run_outcome(
+                        final_text,
+                        reason,
+                        iteration,
+                        tool_calls_total,
+                        started.elapsed().as_millis() as u64,
+                        last_input_tokens,
+                        last_output_tokens,
+                        note,
+                    ));
+                }
+
+                if let Some((reason, note)) = check_tool_call_caps(
+                    tool_calls.len(),
+                    tool_calls_total,
+                    max_tool_calls_per_iteration,
+                    max_tool_calls_total,
+                ) {
+                    self.broadcast_event(WsEvent::agent_state(
+                        self.agent_id.clone(),
+                        crate::websocket::AgentState::Error,
+                    ));
+                    return Ok(make_run_outcome(
+                        "Stopped: tool call budget exceeded.".to_string(),
+                        reason,
+                        iteration,
+                        tool_calls_total,
+                        started.elapsed().as_millis() as u64,
+                        last_input_tokens,
+                        last_output_tokens,
+                        Some(note),
+                    ));
                 }
 
                 let names: Vec<String> = tool_calls.iter().map(|tc| tc.name.clone()).collect();
@@ -303,6 +420,10 @@ impl AgentLoop {
                     };
                     on_event(&batch);
                 }
+
+                tool_batches = tool_batches.saturating_add(1);
+                let expected_results = tool_calls.len();
+                let mut emitted_results = 0usize;
 
                 // Execute each tool call
                 for tc in &tool_calls {
@@ -355,8 +476,27 @@ impl AgentLoop {
                         is_error,
                     };
                     on_event(&tres);
+                    emitted_results = emitted_results.saturating_add(1);
+                    tool_calls_total = tool_calls_total.saturating_add(1);
 
                     history.push(Message::tool_result(&tc.id, &content));
+                }
+
+                // Invariant I2: every emitted tool call must produce a result/error event.
+                if emitted_results != expected_results {
+                    return Ok(make_run_outcome(
+                        "Stopped: tool lifecycle invariant violation.".to_string(),
+                        RunStopReason::ErrorNonRetryable,
+                        iteration,
+                        tool_calls_total,
+                        started.elapsed().as_millis() as u64,
+                        last_input_tokens,
+                        last_output_tokens,
+                        Some(format!(
+                            "loop invariant I2 violated: expected {} results, got {}",
+                            expected_results, emitted_results
+                        )),
+                    ));
                 }
             } else {
                 // No tool calls — text response
@@ -373,7 +513,26 @@ impl AgentLoop {
                     crate::websocket::AgentState::Idle,
                 ));
 
-                return Ok(text);
+                let (reason, final_text, note) = if text.trim().is_empty() && tool_batches > 0 {
+                    (
+                        RunStopReason::ErrorEmptyFinalAfterTools,
+                        "Stopped: assistant returned empty final text after tool execution.".to_string(),
+                        Some("loop invariant I4 violated: empty final text after tool batch".to_string()),
+                    )
+                } else {
+                    (RunStopReason::AssistantFinal, text, None)
+                };
+
+                return Ok(make_run_outcome(
+                    final_text,
+                    reason,
+                    iteration,
+                    tool_calls_total,
+                    started.elapsed().as_millis() as u64,
+                    last_input_tokens,
+                    last_output_tokens,
+                    note,
+                ));
             }
         }
     }
@@ -477,6 +636,106 @@ impl AgentLoop {
     }
 }
 
+fn check_tool_call_caps(
+    requested_in_iteration: usize,
+    tool_calls_total_so_far: u32,
+    max_tool_calls_per_iteration: u32,
+    max_tool_calls_total: u32,
+) -> Option<(RunStopReason, String)> {
+    let requested = requested_in_iteration as u32;
+
+    if max_tool_calls_per_iteration > 0 && requested > max_tool_calls_per_iteration {
+        return Some((
+            RunStopReason::BudgetToolsIteration,
+            format!(
+                "iteration requested={} limit={}",
+                requested, max_tool_calls_per_iteration
+            ),
+        ));
+    }
+
+    if max_tool_calls_total > 0 {
+        let would_total = tool_calls_total_so_far.saturating_add(requested);
+        if would_total > max_tool_calls_total {
+            return Some((
+                RunStopReason::BudgetToolsTotal,
+                format!(
+                    "total_so_far={} requested={} limit={}",
+                    tool_calls_total_so_far, requested, max_tool_calls_total
+                ),
+            ));
+        }
+    }
+
+    None
+}
+
+fn make_run_outcome(
+    text: String,
+    reason: RunStopReason,
+    iterations: u32,
+    tool_calls_total: u32,
+    elapsed_ms: u64,
+    input_tokens: u64,
+    output_tokens: u64,
+    notes: Option<String>,
+) -> RunOutcome {
+    RunOutcome {
+        text,
+        stop: RunStopContract {
+            reason,
+            iterations,
+            tool_calls_total,
+            elapsed_ms,
+            notes,
+        },
+        input_tokens,
+        output_tokens,
+        total_tokens: input_tokens.saturating_add(output_tokens),
+        tool_calls: tool_calls_total,
+    }
+}
+
+fn classify_stop_reason_from_error(err: &FerroError) -> RunStopReason {
+    match err {
+        FerroError::MaxIterations(_) => RunStopReason::BudgetIterations,
+        FerroError::BudgetExhausted { .. } => RunStopReason::BudgetTokens,
+        FerroError::Provider(msg) => {
+            let m = msg.to_ascii_lowercase();
+            if (m.contains("retry") && m.contains("exhaust"))
+                || m.contains("max attempts")
+                || m.contains("too many retries")
+            {
+                RunStopReason::ErrorRetryExhausted
+            } else {
+                RunStopReason::ErrorNonRetryable
+            }
+        }
+        _ => RunStopReason::ErrorNonRetryable,
+    }
+}
+
+fn outcome_from_error(
+    err: FerroError,
+    iteration: u32,
+    tool_calls_total: u32,
+    elapsed_ms: u64,
+    input_tokens: u64,
+    output_tokens: u64,
+) -> RunOutcome {
+    let reason = classify_stop_reason_from_error(&err);
+    make_run_outcome(
+        format!("Stopped: {err}"),
+        reason,
+        iteration,
+        tool_calls_total,
+        elapsed_ms,
+        input_tokens,
+        output_tokens,
+        Some(err.to_string()),
+    )
+}
+
 fn resolve_provider_max_tokens(config: &Config, model: &str) -> u32 {
     if model.contains('/') {
         return config
@@ -578,5 +837,103 @@ mod tests {
             1111
         );
         assert_eq!(resolve_provider_max_tokens(&cfg, "gpt-4.1"), 2222);
+    }
+
+    #[test]
+    fn test_classifies_retry_exhausted_provider_errors() {
+        let e = FerroError::Provider("too many retries; retry exhausted after max attempts".into());
+        assert_eq!(
+            classify_stop_reason_from_error(&e),
+            RunStopReason::ErrorRetryExhausted
+        );
+
+        let e2 = FerroError::Provider("invalid schema for tool input".into());
+        assert_eq!(
+            classify_stop_reason_from_error(&e2),
+            RunStopReason::ErrorNonRetryable
+        );
+    }
+
+    #[test]
+    fn test_make_run_outcome_preserves_stop_contract_fields() {
+        let out = make_run_outcome(
+            "final".to_string(),
+            RunStopReason::AssistantFinal,
+            3,
+            5,
+            1200,
+            100,
+            40,
+            Some("ok".to_string()),
+        );
+
+        assert_eq!(out.text, "final");
+        assert_eq!(out.stop.reason, RunStopReason::AssistantFinal);
+        assert_eq!(out.stop.iterations, 3);
+        assert_eq!(out.stop.tool_calls_total, 5);
+        assert_eq!(out.stop.elapsed_ms, 1200);
+        assert_eq!(out.input_tokens, 100);
+        assert_eq!(out.output_tokens, 40);
+        assert_eq!(out.total_tokens, 140);
+        assert_eq!(out.tool_calls, 5);
+    }
+
+    #[test]
+    fn test_tool_cap_checks_emit_expected_reasons() {
+        let iteration_cap = check_tool_call_caps(9, 0, 8, 64).expect("should stop on per-iteration cap");
+        assert_eq!(iteration_cap.0, RunStopReason::BudgetToolsIteration);
+
+        let total_cap = check_tool_call_caps(3, 63, 8, 64).expect("should stop on total cap");
+        assert_eq!(total_cap.0, RunStopReason::BudgetToolsTotal);
+
+        assert!(check_tool_call_caps(2, 10, 8, 64).is_none());
+    }
+
+    #[derive(serde::Deserialize)]
+    struct ConformanceCase {
+        id: String,
+        kind: String,
+        expect_stop_reason: RunStopReason,
+        requested_in_iteration: Option<usize>,
+        tool_calls_total_so_far: Option<u32>,
+        max_tool_calls_per_iteration: Option<u32>,
+        max_tool_calls_total: Option<u32>,
+        provider_error: Option<String>,
+    }
+
+    #[test]
+    fn test_conformance_cases_json_runner_assertions() {
+        let raw = include_str!("../../evals/tasks.conformance.json");
+        let cases: Vec<ConformanceCase> =
+            serde_json::from_str(raw).expect("valid conformance JSON");
+        assert!(!cases.is_empty(), "conformance cases must not be empty");
+
+        for case in cases {
+            match case.kind.as_str() {
+                "tool_cap" => {
+                    let result = check_tool_call_caps(
+                        case.requested_in_iteration.expect("requested_in_iteration missing"),
+                        case.tool_calls_total_so_far
+                            .expect("tool_calls_total_so_far missing"),
+                        case.max_tool_calls_per_iteration
+                            .expect("max_tool_calls_per_iteration missing"),
+                        case.max_tool_calls_total
+                            .expect("max_tool_calls_total missing"),
+                    )
+                    .unwrap_or_else(|| panic!("{} expected stop, got none", case.id));
+                    assert_eq!(result.0, case.expect_stop_reason, "case {}", case.id);
+                }
+                "error_classifier" => {
+                    let err = FerroError::Provider(
+                        case.provider_error
+                            .clone()
+                            .expect("provider_error missing for error_classifier case"),
+                    );
+                    let reason = classify_stop_reason_from_error(&err);
+                    assert_eq!(reason, case.expect_stop_reason, "case {}", case.id);
+                }
+                other => panic!("unknown conformance case kind: {}", other),
+            }
+        }
     }
 }

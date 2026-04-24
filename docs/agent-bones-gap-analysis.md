@@ -103,3 +103,26 @@ This closes the p3 telemetry-surface objective cleanly.
 - Makes real-time traces and final state consistent.
 - Gives hard validity criteria so setup/error outputs never count as success.
 - Improves interruption/resume accounting with explicit stop reason provenance.
+
+## Closure status (implemented)
+- ✅ A) Added canonical `RunStopReason`, `RunStopContract`, `RunOutcome` in `src/types.rs`.
+- ✅ A) Changed loop return contracts to `RunOutcome` (`run_with_callback`) and `(RunOutcome, events)` (`run`).
+- ✅ B) Added explicit invariants:
+  - I1 user-message-present check
+  - I2 tool-call/result accounting check
+  - I4 empty-final-after-tools stop reason
+  - I5 all internal halt paths now emit stop contracts
+- ✅ B/I3 Added tool-cap config fields and enforcement:
+  - `agent.max_tool_calls_per_iteration`
+  - `agent.max_tool_calls_total`
+  - loop stops with `budget_tools_iteration` / `budget_tools_total`
+- ✅ C) Added retry classification to deterministic stop reasons (`error_retry_exhausted`, `error_non_retryable`).
+- ✅ D) Gateway now includes stop contract metadata in `/v1/responses` extension block (`meta.stop_contract`).
+- ✅ Call-site propagation done for CLI/TUI/Telegram and benchmark telemetry now includes `stop_reason`.
+- ✅ E) Added conformance fixture and runner assertions:
+  - `evals/tasks.conformance.json`
+  - table-driven test runner in `src/agent/loop.rs`
+
+## Closure status (remaining)
+- ⏳ F) Full persisted lifecycle envelope (`run_id`, per-event timestamps persisted) remains future work.
+

@@ -15,7 +15,7 @@ use ferroclaw::security::capabilities::capabilities_from_config;
 use ferroclaw::tasks::{TaskFilter, TaskStatus, TaskStore};
 use ferroclaw::tool::ToolRegistry;
 use ferroclaw::tools::builtin::register_builtin_tools;
-use ferroclaw::types::Message;
+use ferroclaw::types::{Message, RunStopContract};
 use std::path::Path;
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -106,8 +106,8 @@ async fn run_repl(config: Config) -> anyhow::Result<()> {
 
         // Run agent loop
         match agent_loop.run(input, &mut history).await {
-            Ok((response, events)) => {
-                println!("\n{response}\n");
+            Ok((outcome, events)) => {
+                println!("\n{}\n", outcome.text);
                 // Show token usage
                 for event in &events {
                     if let ferroclaw::agent::r#loop::AgentEvent::TokenUsage {
@@ -120,6 +120,9 @@ async fn run_repl(config: Config) -> anyhow::Result<()> {
                             eprintln!("[tokens: in={inp}, out={out}, total={total_used}]");
                         }
                     }
+                }
+                if cli_is_verbose() {
+                    eprintln!("[stop: {:?}]", outcome.stop.reason);
                 }
             }
             Err(e) => {
@@ -141,17 +144,22 @@ async fn run_once(mut config: Config, prompt: &str, benchmark_json: bool) -> any
     let started = std::time::Instant::now();
 
     match agent_loop.run(prompt, &mut history).await {
-        Ok((response, events)) => {
+        Ok((outcome, events)) => {
             let response = if benchmark_json {
-                normalize_benchmark_response(response)
+                normalize_benchmark_response(outcome.text.clone())
             } else {
-                response
+                outcome.text.clone()
             };
             if benchmark_json {
-                let telemetry = summarize_events_for_harness(response, events, started.elapsed().as_millis() as u64);
+                let telemetry = summarize_events_for_harness(
+                    response,
+                    events,
+                    started.elapsed().as_millis() as u64,
+                    Some(outcome.stop),
+                );
                 print_harness_footer(&telemetry)?;
             } else {
-                println!("{response}");
+                println!("{}", outcome.text);
             }
         }
         Err(e) => {
@@ -201,6 +209,7 @@ fn summarize_events_for_harness(
     response: String,
     events: Vec<ferroclaw::agent::r#loop::AgentEvent>,
     elapsed_ms: u64,
+    stop: Option<RunStopContract>,
 ) -> BenchmarkTelemetry {
     let mut token_count = 0u64;
     let mut tool_calls = 0u32;
@@ -221,12 +230,23 @@ fn summarize_events_for_harness(
         }
     }
 
+    let stop_reason = stop.as_ref().map(|s| format!("{:?}", s.reason));
+    let terminal_state = if matches!(
+        stop.as_ref().map(|s| &s.reason),
+        Some(ferroclaw::types::RunStopReason::AssistantFinal)
+    ) {
+        "success"
+    } else {
+        "error"
+    };
+
     BenchmarkTelemetry {
-        terminal_state: "success",
+        terminal_state,
         response,
         token_count,
         tool_calls,
         elapsed_ms,
+        stop_reason,
     }
 }
 

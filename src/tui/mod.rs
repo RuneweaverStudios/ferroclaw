@@ -174,9 +174,10 @@ async fn run_loop(
 
                     // Run the agent
                     match agent_loop.run(&input, history).await {
-                        Ok((response, events)) => {
+                        Ok((outcome, events)) => {
                             process_agent_events(app, &events);
-                            app.chat_history.push(ChatEntry::AssistantMessage(response));
+                            app.chat_history
+                                .push(ChatEntry::AssistantMessage(outcome.text));
                             app.set_status("Ready");
                         }
                         Err(e) => {

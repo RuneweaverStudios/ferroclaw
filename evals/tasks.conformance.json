@@ -1,0 +1,32 @@
+[
+  {
+    "id": "tool-cap-iteration",
+    "kind": "tool_cap",
+    "requested_in_iteration": 9,
+    "tool_calls_total_so_far": 0,
+    "max_tool_calls_per_iteration": 8,
+    "max_tool_calls_total": 64,
+    "expect_stop_reason": "budget_tools_iteration"
+  },
+  {
+    "id": "tool-cap-total",
+    "kind": "tool_cap",
+    "requested_in_iteration": 3,
+    "tool_calls_total_so_far": 63,
+    "max_tool_calls_per_iteration": 8,
+    "max_tool_calls_total": 64,
+    "expect_stop_reason": "budget_tools_total"
+  },
+  {
+    "id": "retry-exhausted-classifier",
+    "kind": "error_classifier",
+    "provider_error": "too many retries: max attempts reached; retry exhausted",
+    "expect_stop_reason": "error_retry_exhausted"
+  },
+  {
+    "id": "non-retryable-classifier",
+    "kind": "error_classifier",
+    "provider_error": "invalid schema for tool input",
+    "expect_stop_reason": "error_non_retryable"
+  }
+]

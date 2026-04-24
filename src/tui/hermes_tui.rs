@@ -672,8 +672,9 @@ async fn run_loop(
                             app.run_started_at = None;
 
                             match run_result {
-                                Ok(response) => {
-                                    app.chat_history.push(ChatEntry::AssistantMessage(response));
+                                Ok(outcome) => {
+                                    app.chat_history
+                                        .push(ChatEntry::AssistantMessage(outcome.text));
                                     app.set_status("Ready");
                                     app.verb = "Ready".to_string();
                                 }

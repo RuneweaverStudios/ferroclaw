@@ -385,12 +385,13 @@ impl TelegramBot {
 
                     // Send response
                     match response {
-                        Ok((text, _events)) => {
+                        Ok((outcome, _events)) => {
                             tracing::info!(
-                                "Telegram [{chat_id}] agent responded ({} chars)",
-                                text.len()
+                                "Telegram [{chat_id}] agent responded ({} chars, stop={:?})",
+                                outcome.text.len(),
+                                outcome.stop.reason
                             );
-                            match bot.send_long_message(chat_id, &text, None).await {
+                            match bot.send_long_message(chat_id, &outcome.text, None).await {
                                 Ok(_) => tracing::info!("Telegram [{chat_id}] message delivered"),
                                 Err(e) => tracing::error!("Telegram [{chat_id}] send failed: {e}"),
                             }

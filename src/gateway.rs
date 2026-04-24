@@ -13,7 +13,7 @@ use crate::memory::MemoryStore;
 use crate::security::capabilities::capabilities_from_config;
 use crate::tool::ToolRegistry;
 use crate::tools::builtin::register_builtin_tools;
-use crate::types::Message;
+use crate::types::{Message, RunStopContract};
 use axum::extract::State;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
@@ -180,20 +180,19 @@ async fn responses_handler(
     .await;
 
     match run_result {
-        Ok(Ok((response, events))) => {
+        Ok(Ok((outcome, events))) => {
             let elapsed_ms = started.elapsed().as_millis() as u64;
-            let (output_tokens, tool_calls) = summarize_events(&events);
-            let input_tokens = estimate_tokens(&prompt);
-            let total_tokens = input_tokens + output_tokens;
+            let (_, tool_calls) = summarize_events(&events);
             openai_response(
                 &model,
-                &response,
+                &outcome.text,
                 elapsed_ms,
-                input_tokens,
-                output_tokens,
-                total_tokens,
-                tool_calls,
+                outcome.input_tokens,
+                outcome.output_tokens,
+                outcome.total_tokens,
+                tool_calls.max(outcome.stop.tool_calls_total),
                 false,
+                Some(outcome.stop),
             )
         }
         Ok(Err(e)) => {
@@ -212,6 +211,7 @@ async fn responses_handler(
                 input_tokens + output_tokens,
                 0,
                 false,
+                None,
             )
         }
         Err(_) => {
@@ -230,6 +230,7 @@ async fn responses_handler(
                 input_tokens + output_tokens,
                 0,
                 true,
+                None,
             )
         }
     }
@@ -264,6 +265,7 @@ fn openai_response(
     total_tokens: u64,
     tool_calls: u32,
     timed_out: bool,
+    stop: Option<RunStopContract>,
 ) -> axum::response::Response {
     let response_id = format!("resp_{}", uuid::Uuid::new_v4().simple());
     (
@@ -294,7 +296,8 @@ fn openai_response(
             "meta": {
                 "elapsed_ms": elapsed_ms,
                 "tool_calls": tool_calls,
-                "timed_out": timed_out
+                "timed_out": timed_out,
+                "stop": stop
             }
         })),
     )

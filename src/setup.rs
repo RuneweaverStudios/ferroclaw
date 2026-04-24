@@ -1032,7 +1032,7 @@ fn generate_config_toml(
     // Agent
     t.push_str("[agent]\n");
     t.push_str(&format!("default_model = \"{default_model}\"\n"));
-    t.push_str("max_iterations = 30\ntoken_budget = 200000\n\n");
+    t.push_str("max_iterations = 30\ntoken_budget = 200000\nmax_tool_calls_per_iteration = 8\nmax_tool_calls_total = 64\n\n");
 
     // Providers — env var names only, actual keys are in .env
     if let Some(ref p) = providers.anthropic {
