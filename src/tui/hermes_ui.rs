@@ -56,6 +56,31 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
     }
 }
 
+fn hard_wrap_preserve_spaces(text: &str, width: usize) -> Vec<String> {
+    if width == 0 {
+        return vec![String::new()];
+    }
+
+    if text.is_empty() {
+        return vec![String::new()];
+    }
+
+    let chars: Vec<char> = text.chars().collect();
+    let mut out = Vec::new();
+    let mut i = 0usize;
+    while i < chars.len() {
+        let end = (i + width).min(chars.len());
+        out.push(chars[i..end].iter().collect());
+        i = end;
+    }
+
+    if out.is_empty() {
+        out.push(String::new());
+    }
+
+    out
+}
+
 fn wrap_to_width(text: &str, width: usize) -> Vec<String> {
     if width == 0 {
         return vec![String::new()];
@@ -76,7 +101,6 @@ fn wrap_to_width(text: &str, width: usize) -> Vec<String> {
             if word_len <= width {
                 line.push_str(word);
             } else {
-                // Long token: hard-wrap by character width.
                 let chars: Vec<char> = word.chars().collect();
                 let mut i = 0usize;
                 while i < chars.len() {
@@ -178,7 +202,7 @@ fn draw_chat(frame: &mut Frame, app: &mut App, area: Rect) {
     let mut lines: Vec<Line> = Vec::new();
 
     for banner in BANNER_LINES {
-        for seg in wrap_to_width(banner, inner_width.max(1)) {
+        for seg in hard_wrap_preserve_spaces(banner, inner_width.max(1)) {
             lines.push(Line::from(Span::styled(
                 seg,
                 Style::default().fg(TITLE).add_modifier(Modifier::BOLD),
