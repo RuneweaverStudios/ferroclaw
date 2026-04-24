@@ -44,10 +44,8 @@ pub fn load_and_register_skills(
     }
 
     // Apply category filter
-    let enabled_categories: Option<Vec<SkillCategory>> = config
-        .enabled_categories
-        .as_ref()
-        .map(|cats| {
+    let enabled_categories: Option<Vec<SkillCategory>> =
+        config.enabled_categories.as_ref().map(|cats| {
             cats.iter()
                 .filter_map(|c| serde_json::from_value(serde_json::Value::String(c.clone())).ok())
                 .collect()
@@ -141,13 +139,15 @@ pub fn load_custom_skills(dir: &Path) -> Result<Vec<SkillManifest>> {
     }
 
     let entries = std::fs::read_dir(dir).map_err(|e| {
-        FerroError::Config(format!("Failed to read skills directory {}: {e}", dir.display()))
+        FerroError::Config(format!(
+            "Failed to read skills directory {}: {e}",
+            dir.display()
+        ))
     })?;
 
     for entry in entries {
-        let entry = entry.map_err(|e| {
-            FerroError::Config(format!("Failed to read directory entry: {e}"))
-        })?;
+        let entry = entry
+            .map_err(|e| FerroError::Config(format!("Failed to read directory entry: {e}")))?;
         let path = entry.path();
 
         if path.extension().is_some_and(|ext| ext == "toml") {
@@ -165,13 +165,11 @@ pub fn load_custom_skills(dir: &Path) -> Result<Vec<SkillManifest>> {
 
 /// Load a single skill manifest from a TOML file.
 fn load_skill_file(path: &Path) -> Result<SkillManifest> {
-    let content = std::fs::read_to_string(path).map_err(|e| {
-        FerroError::Config(format!("Failed to read {}: {e}", path.display()))
-    })?;
+    let content = std::fs::read_to_string(path)
+        .map_err(|e| FerroError::Config(format!("Failed to read {}: {e}", path.display())))?;
 
-    let manifest: SkillManifest = toml::from_str(&content).map_err(|e| {
-        FerroError::Config(format!("Failed to parse {}: {e}", path.display()))
-    })?;
+    let manifest: SkillManifest = toml::from_str(&content)
+        .map_err(|e| FerroError::Config(format!("Failed to parse {}: {e}", path.display())))?;
 
     Ok(manifest)
 }
@@ -210,7 +208,11 @@ mod tests {
     #[test]
     fn test_bundled_skills_count() {
         let skills = bundled_skills();
-        assert!(skills.len() >= 70, "Expected 70+ bundled skills, got {}", skills.len());
+        assert!(
+            skills.len() >= 70,
+            "Expected 70+ bundled skills, got {}",
+            skills.len()
+        );
     }
 
     #[test]

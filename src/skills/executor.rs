@@ -20,10 +20,7 @@ impl BashSkillHandler {
         Self { command_template }
     }
 
-    pub fn interpolate(
-        &self,
-        arguments: &Value,
-    ) -> std::result::Result<String, String> {
+    pub fn interpolate(&self, arguments: &Value) -> std::result::Result<String, String> {
         let args: HashMap<String, String> = match arguments.as_object() {
             Some(obj) => obj
                 .iter()
@@ -66,7 +63,10 @@ impl BashSkillHandler {
             .to_string();
 
         if !missing.is_empty() {
-            return Err(format!("Missing required parameters: {}", missing.join(", ")));
+            return Err(format!(
+                "Missing required parameters: {}",
+                missing.join(", ")
+            ));
         }
 
         // Collapse multiple spaces from empty optional params
@@ -166,8 +166,7 @@ mod tests {
 
     #[test]
     fn test_interpolate_multiple_params() {
-        let handler =
-            BashSkillHandler::new("find {{path}} -name '{{pattern}}' {{?extra}}".into());
+        let handler = BashSkillHandler::new("find {{path}} -name '{{pattern}}' {{?extra}}".into());
         let args = serde_json::json!({"path": "/tmp", "pattern": "*.rs"});
         let result = handler.interpolate(&args).unwrap();
         assert_eq!(result, "find /tmp -name '*.rs'");

@@ -5,13 +5,28 @@
 //! - Scrollable chat history
 //! - Multiline input area
 //! - Status bar with connection info
+//!
+//! Also includes a Hermes-style TUI with:
+//! - Dark theme
+//! - Message bubbles (assistant: "Ferroclaw" header + text; user: orange dot + text)
+//! - Bottom status bar with model/process info
 
 pub mod app;
+pub mod colors;
 pub mod events;
+pub mod glitter_verbs;
+pub mod hermes_tui;
+pub mod hermes_ui;
+pub mod kinetic_tui;
+pub mod minimal_tui;
+pub mod orchestrator_tui;
+pub mod orchestrator_ui;
+pub mod thinking_indicator;
+pub mod thinking_indicator_demo;
 pub mod ui;
 
-use crate::agent::r#loop::AgentEvent;
 use crate::agent::AgentLoop;
+use crate::agent::r#loop::AgentEvent;
 use crate::config::Config;
 use crate::types::Message;
 
@@ -21,10 +36,10 @@ use events::{Event, EventHandler};
 use crossterm::event::{DisableMouseCapture, EnableMouseCapture};
 use crossterm::execute;
 use crossterm::terminal::{
-    disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
+    EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode,
 };
-use ratatui::backend::CrosstermBackend;
 use ratatui::Terminal;
+use ratatui::backend::CrosstermBackend;
 use std::io;
 
 /// Run the full TUI REPL. Takes ownership of the agent loop and config.
@@ -49,7 +64,14 @@ pub async fn run_tui(mut agent_loop: AgentLoop, config: &Config) -> anyhow::Resu
     )));
 
     // Main loop
-    let result = run_loop(&mut terminal, &mut app, &event_handler, &mut agent_loop, &mut history).await;
+    let result = run_loop(
+        &mut terminal,
+        &mut app,
+        &event_handler,
+        &mut agent_loop,
+        &mut history,
+    )
+    .await;
 
     // Restore terminal (always, even on error)
     disable_raw_mode()?;
@@ -78,6 +100,14 @@ async fn run_loop(
         match event_handler.next()? {
             Event::Tick => {
                 // Nothing to do on tick, just redraw
+            }
+            Event::MouseScrollUp => {
+                app.scroll_up(3);
+                continue;
+            }
+            Event::MouseScrollDown => {
+                app.scroll_down(3);
+                continue;
             }
             Event::Key(key_event) => {
                 use crossterm::event::KeyCode;
@@ -117,6 +147,16 @@ async fn run_loop(
                     continue;
                 }
 
+                // Character input (exclude task shortcuts)
+                if let KeyCode::Char(c) = code {
+                    // Skip task management shortcuts: n, d, c
+                    if c == 'n' || c == 'd' {
+                        continue; // Ignore these keys
+                    }
+                    app.input_char(c);
+                    continue;
+                }
+
                 // Enter: send message (Shift+Enter for newline)
                 if code == KeyCode::Enter && !modifiers.contains(KeyModifiers::SHIFT) {
                     let input = app.take_input();
@@ -136,13 +176,11 @@ async fn run_loop(
                     match agent_loop.run(&input, history).await {
                         Ok((response, events)) => {
                             process_agent_events(app, &events);
-                            app.chat_history
-                                .push(ChatEntry::AssistantMessage(response));
+                            app.chat_history.push(ChatEntry::AssistantMessage(response));
                             app.set_status("Ready");
                         }
                         Err(e) => {
-                            app.chat_history
-                                .push(ChatEntry::Error(format!("{e}")));
+                            app.chat_history.push(ChatEntry::Error(format!("{e}")));
                             app.set_status("Error");
                         }
                     }
@@ -196,16 +234,22 @@ async fn run_loop(
                     continue;
                 }
 
-                // Character input
-                if let KeyCode::Char(c) = code {
-                    app.input_char(c);
-                }
-
                 // Tab -> 4 spaces
                 if code == KeyCode::Tab {
                     for _ in 0..4 {
                         app.input_char(' ');
                     }
+                    continue;
+                }
+
+                // Character input (exclude task shortcuts: n, d)
+                if let KeyCode::Char(c) = code {
+                    // Skip task management shortcuts: n, d
+                    if c == 'n' || c == 'd' {
+                        continue; // Ignore these keys
+                    }
+                    app.input_char(c);
+                    continue;
                 }
             }
             Event::Resize(_, _) => {
@@ -225,36 +269,23 @@ fn process_agent_events(app: &mut App, events: &[AgentEvent]) {
                     args: String::new(),
                 });
                 app.iteration += 1;
+                app.auto_scroll_if_sticky();
             }
+            AgentEvent::LlmRound { .. }
+            | AgentEvent::ModelToolChoice { .. }
+            | AgentEvent::ParallelToolBatch { .. } => {}
             AgentEvent::ToolResult {
-                content, is_error, id,
+                name,
+                content,
+                is_error,
+                ..
             } => {
-                // Try to find the tool name from a preceding ToolCallStart
-                let tool_name = events
-                    .iter()
-                    .filter_map(|e| {
-                        if let AgentEvent::ToolCallStart {
-                            id: start_id,
-                            name,
-                        } = e
-                        {
-                            if start_id == id {
-                                Some(name.clone())
-                            } else {
-                                None
-                            }
-                        } else {
-                            None
-                        }
-                    })
-                    .next()
-                    .unwrap_or_else(|| "unknown".into());
-
                 app.chat_history.push(ChatEntry::ToolResult {
-                    name: tool_name,
+                    name: name.clone(),
                     content: content.clone(),
                     is_error: *is_error,
                 });
+                app.auto_scroll_if_sticky();
             }
             AgentEvent::TokenUsage {
                 input,
@@ -267,6 +298,7 @@ fn process_agent_events(app: &mut App, events: &[AgentEvent]) {
             }
             AgentEvent::Error(msg) => {
                 app.chat_history.push(ChatEntry::Error(msg.clone()));
+                app.auto_scroll_if_sticky();
             }
             AgentEvent::TextDelta(_) | AgentEvent::Done { .. } => {
                 // Text deltas are already captured in the final response

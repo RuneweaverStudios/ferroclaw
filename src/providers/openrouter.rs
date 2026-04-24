@@ -15,7 +15,7 @@ use crate::types::{
     Message, MessageContent, ProviderResponse, Role, TokenUsage, ToolCall, ToolDefinition,
 };
 use reqwest::Client;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 pub struct OpenRouterProvider {
     api_key: String,
@@ -48,8 +48,7 @@ impl OpenRouterProvider {
         model: &str,
         max_tokens: u32,
     ) -> Value {
-        let formatted_messages: Vec<Value> =
-            messages.iter().map(|m| format_message(m)).collect();
+        let formatted_messages: Vec<Value> = messages.iter().map(|m| format_message(m)).collect();
 
         let mut body = json!({
             "model": model,
@@ -116,10 +115,7 @@ impl OpenRouterProvider {
             .unwrap_or_default();
 
         let usage = body.get("usage").map(|u| TokenUsage {
-            input_tokens: u
-                .get("prompt_tokens")
-                .and_then(|t| t.as_u64())
-                .unwrap_or(0),
+            input_tokens: u.get("prompt_tokens").and_then(|t| t.as_u64()).unwrap_or(0),
             output_tokens: u
                 .get("completion_tokens")
                 .and_then(|t| t.as_u64())
@@ -159,49 +155,81 @@ impl LlmProvider for OpenRouterProvider {
     ) -> BoxFuture<'a, Result<ProviderResponse>> {
         Box::pin(async move {
             let body = self.build_request_body(messages, tools, model, max_tokens);
+            let max_attempts = 3usize;
+            let mut last_err: Option<FerroError> = None;
 
-            let mut request = self
-                .client
-                .post(format!("{}/chat/completions", self.base_url))
-                .header("Authorization", format!("Bearer {}", self.api_key))
-                .header("Content-Type", "application/json");
+            for attempt in 1..=max_attempts {
+                let mut request = self
+                    .client
+                    .post(format!("{}/chat/completions", self.base_url))
+                    .header("Authorization", format!("Bearer {}", self.api_key))
+                    .header("Content-Type", "application/json");
 
-            // OpenRouter-specific headers for ranking attribution
-            if let Some(url) = &self.site_url {
-                request = request.header("HTTP-Referer", url.as_str());
-            }
-            if let Some(name) = &self.site_name {
-                request = request.header("X-OpenRouter-Title", name.as_str());
-            }
+                // OpenRouter-specific headers for ranking attribution
+                if let Some(url) = &self.site_url {
+                    request = request.header("HTTP-Referer", url.as_str());
+                }
+                if let Some(name) = &self.site_name {
+                    request = request.header("X-OpenRouter-Title", name.as_str());
+                }
 
-            let response = request
-                .json(&body)
-                .send()
-                .await
-                .map_err(|e| {
-                    FerroError::Provider(format!("OpenRouter HTTP request failed: {e}"))
-                })?;
+                let response = match request.json(&body).send().await {
+                    Ok(resp) => resp,
+                    Err(e) => {
+                        let is_retryable = e.is_timeout() || e.is_connect() || e.is_request();
+                        let ferr = FerroError::Provider(format!(
+                            "OpenRouter HTTP request failed (attempt {attempt}/{max_attempts}): {e}"
+                        ));
+                        if is_retryable && attempt < max_attempts {
+                            last_err = Some(ferr);
+                            tokio::time::sleep(tokio::time::Duration::from_millis(
+                                250 * attempt as u64,
+                            ))
+                            .await;
+                            continue;
+                        }
+                        return Err(ferr);
+                    }
+                };
 
-            let status = response.status();
-            let response_body: Value = response
-                .json()
-                .await
-                .map_err(|e| {
+                let status = response.status();
+                let response_body: Value = response.json().await.map_err(|e| {
                     FerroError::Provider(format!("Failed to parse OpenRouter response: {e}"))
                 })?;
 
-            if !status.is_success() {
-                let error_msg = response_body
-                    .get("error")
-                    .and_then(|e| e.get("message"))
-                    .and_then(|m| m.as_str())
-                    .unwrap_or("Unknown error");
-                return Err(FerroError::Provider(format!(
-                    "OpenRouter API error ({status}): {error_msg}"
-                )));
+                if !status.is_success() {
+                    let error_msg = response_body
+                        .get("error")
+                        .and_then(|e| e.get("message"))
+                        .and_then(|m| m.as_str())
+                        .unwrap_or("Unknown error");
+
+                    let retryable_status = status.as_u16() == 408
+                        || status.as_u16() == 409
+                        || status.as_u16() == 429
+                        || status.is_server_error();
+                    let ferr = FerroError::Provider(format!(
+                        "OpenRouter API error ({status}) attempt {attempt}/{max_attempts}: {error_msg}"
+                    ));
+
+                    if retryable_status && attempt < max_attempts {
+                        last_err = Some(ferr);
+                        tokio::time::sleep(tokio::time::Duration::from_millis(
+                            250 * attempt as u64,
+                        ))
+                        .await;
+                        continue;
+                    }
+
+                    return Err(ferr);
+                }
+
+                return self.parse_response(&response_body);
             }
 
-            self.parse_response(&response_body)
+            Err(last_err.unwrap_or_else(|| {
+                FerroError::Provider("OpenRouter request failed after retries".into())
+            }))
         })
     }
 

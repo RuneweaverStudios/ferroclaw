@@ -186,10 +186,7 @@ impl ToolDefinition {
 }
 
 fn json_type_to_hint(schema: &serde_json::Value) -> String {
-    let json_type = schema
-        .get("type")
-        .and_then(|t| t.as_str())
-        .unwrap_or("any");
+    let json_type = schema.get("type").and_then(|t| t.as_str()).unwrap_or("any");
 
     if let Some(enum_vals) = schema.get("enum").and_then(|e| e.as_array()) {
         let vals: Vec<String> = enum_vals

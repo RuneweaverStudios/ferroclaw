@@ -31,7 +31,10 @@ impl HomeAssistantChannel {
 
     /// Send a notification via Home Assistant notification service.
     pub async fn send_notification(&self, title: &str, message: &str) -> Result<()> {
-        let url = format!("{}/api/services/notify/persistent_notification", self.api_url);
+        let url = format!(
+            "{}/api/services/notify/persistent_notification",
+            self.api_url
+        );
 
         let body = serde_json::json!({
             "title": title,

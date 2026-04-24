@@ -128,8 +128,12 @@ mod tests {
         let mut msgs: Vec<Message> = Vec::new();
         msgs.push(Message::system("System prompt"));
         for i in 0..20 {
-            msgs.push(Message::user(format!("Message {i} with some content padding")));
-            msgs.push(Message::assistant(format!("Response {i} with more padding text")));
+            msgs.push(Message::user(format!(
+                "Message {i} with some content padding"
+            )));
+            msgs.push(Message::assistant(format!(
+                "Response {i} with more padding text"
+            )));
         }
 
         let original_len = msgs.len();

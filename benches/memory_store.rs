@@ -6,7 +6,7 @@
 //! - Conversation persistence throughput
 //! - List all with various sizes
 
-use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
+use criterion::{BenchmarkId, Criterion, black_box, criterion_group, criterion_main};
 use ferroclaw::memory::MemoryStore;
 
 fn bench_insert(c: &mut Criterion) {
@@ -24,7 +24,9 @@ fn bench_insert(c: &mut Criterion) {
                             store
                                 .insert(
                                     &format!("key_{i}"),
-                                    &format!("Value content for item number {i} with some padding text"),
+                                    &format!(
+                                        "Value content for item number {i} with some padding text"
+                                    ),
                                 )
                                 .unwrap();
                         }
@@ -54,7 +56,13 @@ fn bench_search(c: &mut Criterion) {
                                     &format!("item_{i}"),
                                     &format!(
                                         "This is item {i} about {} technology and {} framework",
-                                        if i % 3 == 0 { "Rust" } else if i % 3 == 1 { "Python" } else { "JavaScript" },
+                                        if i % 3 == 0 {
+                                            "Rust"
+                                        } else if i % 3 == 1 {
+                                            "Python"
+                                        } else {
+                                            "JavaScript"
+                                        },
                                         if i % 2 == 0 { "agent" } else { "compiler" }
                                     ),
                                 )
@@ -87,7 +95,11 @@ fn bench_conversation(c: &mut Criterion) {
                         for i in 0..turns {
                             let role = if i % 2 == 0 { "user" } else { "assistant" };
                             store
-                                .save_conversation("sess_bench", role, &format!("Message {i} with content"))
+                                .save_conversation(
+                                    "sess_bench",
+                                    role,
+                                    &format!("Message {i} with content"),
+                                )
                                 .unwrap();
                         }
                     },
@@ -125,28 +137,30 @@ fn bench_list_all(c: &mut Criterion) {
     let mut group = c.benchmark_group("memory_list_all");
 
     for count in [50, 200, 1000] {
-        group.bench_with_input(
-            BenchmarkId::new("list", count),
-            &count,
-            |b, &count| {
-                b.iter_with_setup(
-                    || {
-                        let store = MemoryStore::in_memory().unwrap();
-                        for i in 0..count {
-                            store.insert(&format!("k_{i}"), &format!("v_{i}")).unwrap();
-                        }
-                        store
-                    },
-                    |store| {
-                        let _ = store.list_all().unwrap();
-                    },
-                );
-            },
-        );
+        group.bench_with_input(BenchmarkId::new("list", count), &count, |b, &count| {
+            b.iter_with_setup(
+                || {
+                    let store = MemoryStore::in_memory().unwrap();
+                    for i in 0..count {
+                        store.insert(&format!("k_{i}"), &format!("v_{i}")).unwrap();
+                    }
+                    store
+                },
+                |store| {
+                    let _ = store.list_all().unwrap();
+                },
+            );
+        });
     }
 
     group.finish();
 }
 
-criterion_group!(benches, bench_insert, bench_search, bench_conversation, bench_list_all);
+criterion_group!(
+    benches,
+    bench_insert,
+    bench_search,
+    bench_conversation,
+    bench_list_all
+);
 criterion_main!(benches);

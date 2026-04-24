@@ -6,9 +6,9 @@
 //! - Response formatting (summary, minified, CSV)
 //! - Auto-redirect for large responses
 
-use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
+use criterion::{BenchmarkId, Criterion, black_box, criterion_group, criterion_main};
 use ferroclaw::mcp::diet::{
-    format_response, generate_skill_summary, render_skill_summary, DietFormat,
+    DietFormat, format_response, generate_skill_summary, render_skill_summary,
 };
 use ferroclaw::types::ToolDefinition;
 use serde_json::json;
@@ -50,13 +50,9 @@ fn bench_skill_summary_generation(c: &mut Criterion) {
 
     for count in [5, 10, 25, 50, 100] {
         let tools = make_tools(count);
-        group.bench_with_input(
-            BenchmarkId::new("generate", count),
-            &tools,
-            |b, tools| {
-                b.iter(|| generate_skill_summary(black_box("bench_server"), black_box(tools)))
-            },
-        );
+        group.bench_with_input(BenchmarkId::new("generate", count), &tools, |b, tools| {
+            b.iter(|| generate_skill_summary(black_box("bench_server"), black_box(tools)))
+        });
     }
 
     group.finish();
@@ -68,11 +64,9 @@ fn bench_render_summary(c: &mut Criterion) {
     for count in [10, 50, 100] {
         let tools = make_tools(count);
         let summary = generate_skill_summary("bench_server", &tools);
-        group.bench_with_input(
-            BenchmarkId::new("render", count),
-            &summary,
-            |b, summary| b.iter(|| render_skill_summary(black_box(summary))),
-        );
+        group.bench_with_input(BenchmarkId::new("render", count), &summary, |b, summary| {
+            b.iter(|| render_skill_summary(black_box(summary)))
+        });
     }
 
     group.finish();
@@ -119,13 +113,9 @@ fn bench_format_response(c: &mut Criterion) {
             .collect();
         let content = serde_json::to_string(&data).unwrap();
 
-        group.bench_with_input(
-            BenchmarkId::new("summary", size),
-            &content,
-            |b, content| {
-                b.iter(|| format_response(black_box(content), DietFormat::Summary, 50_000))
-            },
-        );
+        group.bench_with_input(BenchmarkId::new("summary", size), &content, |b, content| {
+            b.iter(|| format_response(black_box(content), DietFormat::Summary, 50_000))
+        });
 
         group.bench_with_input(
             BenchmarkId::new("minified", size),

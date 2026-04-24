@@ -43,7 +43,10 @@ async fn test_builtin_tools_respect_capabilities() {
         .await;
     assert!(result.is_err());
     let err = result.unwrap_err().to_string();
-    assert!(err.contains("Capability denied"), "Expected capability denial, got: {err}");
+    assert!(
+        err.contains("Capability denied"),
+        "Expected capability denial, got: {err}"
+    );
 }
 
 #[tokio::test]
@@ -64,7 +67,12 @@ async fn test_bash_requires_process_exec() {
         )
         .await;
     assert!(result.is_err());
-    assert!(result.unwrap_err().to_string().contains("Capability denied"));
+    assert!(
+        result
+            .unwrap_err()
+            .to_string()
+            .contains("Capability denied")
+    );
 
     // With ProcessExec — should succeed
     let exec_caps = CapabilitySet::new([Capability::ProcessExec]);
@@ -100,7 +108,12 @@ async fn test_web_fetch_requires_net_outbound() {
         )
         .await;
     assert!(result.is_err());
-    assert!(result.unwrap_err().to_string().contains("Capability denied"));
+    assert!(
+        result
+            .unwrap_err()
+            .to_string()
+            .contains("Capability denied")
+    );
 }
 
 #[tokio::test]

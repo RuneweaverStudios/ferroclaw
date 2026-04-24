@@ -14,7 +14,15 @@ const CATEGORY_KEYWORDS: &[(&str, &[&str])] = &[
     (
         "File Operations",
         &[
-            "file", "read", "write", "directory", "path", "rename", "move", "copy", "delete",
+            "file",
+            "read",
+            "write",
+            "directory",
+            "path",
+            "rename",
+            "move",
+            "copy",
+            "delete",
         ],
     ),
     (
@@ -38,7 +46,13 @@ const CATEGORY_KEYWORDS: &[(&str, &[&str])] = &[
     (
         "Browser",
         &[
-            "navigate", "click", "screenshot", "page", "element", "browser", "dom",
+            "navigate",
+            "click",
+            "screenshot",
+            "page",
+            "element",
+            "browser",
+            "dom",
         ],
     ),
     (
@@ -76,10 +90,7 @@ pub struct SkillEntry {
 
 /// Generate a compact skill summary from tool definitions.
 /// This is the core value proposition — ~93% token reduction vs raw JSON schemas.
-pub fn generate_skill_summary(
-    server_name: &str,
-    tools: &[ToolDefinition],
-) -> SkillSummary {
+pub fn generate_skill_summary(server_name: &str, tools: &[ToolDefinition]) -> SkillSummary {
     let grouped = categorize_tools(tools);
 
     let categories: Vec<SkillCategory> = {
@@ -114,7 +125,10 @@ pub fn generate_skill_summary(
 
 /// Render a skill summary as compact text for the LLM's system prompt.
 pub fn render_skill_summary(summary: &SkillSummary) -> String {
-    let mut out = format!("# {} ({} tools)\n\n", summary.server_name, summary.tool_count);
+    let mut out = format!(
+        "# {} ({} tools)\n\n",
+        summary.server_name, summary.tool_count
+    );
 
     for cat in &summary.categories {
         out.push_str(&format!("## {}\n", cat.name));
@@ -357,7 +371,10 @@ mod tests {
         let tools = vec![
             make_tool("read_file", "Read contents of a file"),
             make_tool("write_file", "Write content to a file"),
-            make_tool("search_files", "Search for a pattern matching query in files"),
+            make_tool(
+                "search_files",
+                "Search for a pattern matching query in files",
+            ),
             make_tool("git_commit", "Create a git commit on branch"),
         ];
         let grouped = categorize_tools(&tools);

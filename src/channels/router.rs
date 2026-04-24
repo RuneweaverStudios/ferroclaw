@@ -102,15 +102,12 @@ impl ChannelRouter {
         incoming: &IncomingMessage,
         response: OutgoingMessage,
     ) -> Result<()> {
-        let channel = self
-            .channels
-            .get(&incoming.channel)
-            .ok_or_else(|| {
-                crate::error::FerroError::Channel(format!(
-                    "No channel '{}' configured",
-                    incoming.channel
-                ))
-            })?;
+        let channel = self.channels.get(&incoming.channel).ok_or_else(|| {
+            crate::error::FerroError::Channel(format!(
+                "No channel '{}' configured",
+                incoming.channel
+            ))
+        })?;
 
         channel.send(&incoming.sender_id, response).await
     }
@@ -159,9 +156,9 @@ impl Channel for TelegramChannelAdapter {
         message: OutgoingMessage,
     ) -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<()>> + Send + 'a>> {
         Box::pin(async move {
-            let chat_id: i64 = target
-                .parse()
-                .map_err(|_| crate::error::FerroError::Channel(format!("Invalid chat_id: {target}")))?;
+            let chat_id: i64 = target.parse().map_err(|_| {
+                crate::error::FerroError::Channel(format!("Invalid chat_id: {target}"))
+            })?;
             self.0.send_long_message(chat_id, &message.text, None).await
         })
     }

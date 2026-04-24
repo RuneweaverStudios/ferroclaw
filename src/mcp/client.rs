@@ -7,10 +7,11 @@
 
 use crate::config::McpServerConfig;
 use crate::error::{FerroError, Result};
-use crate::mcp::cache::{config_fingerprint, SchemaCache};
+use crate::mcp::cache::{SchemaCache, config_fingerprint};
+use crate::mcp::compression::compress_tools;
 use crate::mcp::diet::{DietFormat, DietResponse, format_response};
 use crate::types::ToolDefinition;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use std::collections::HashMap;
 use std::process::Stdio;
 use tokio::process::Command;
@@ -21,19 +22,24 @@ pub struct McpClient {
     cache: SchemaCache,
     default_format: DietFormat,
     max_response_size: usize,
+    compression_enabled: bool,
 }
 
 impl McpClient {
-    pub fn new(
-        servers: HashMap<String, McpServerConfig>,
-        max_response_size: usize,
-    ) -> Self {
+    pub fn new(servers: HashMap<String, McpServerConfig>, max_response_size: usize) -> Self {
         Self {
             servers,
             cache: SchemaCache::new(),
             default_format: DietFormat::Summary,
             max_response_size,
+            compression_enabled: true,
         }
+    }
+
+    /// Enable or disable schema compression
+    pub fn with_compression(mut self, enabled: bool) -> Self {
+        self.compression_enabled = enabled;
+        self
     }
 
     /// Discover tools from an MCP server (cache-first).
@@ -55,11 +61,10 @@ impl McpClient {
 
         // Check cache first
         if !force_refresh {
-            if let Some(cached) = self.cache.get(
-                server_name,
-                &fingerprint,
-                server_config.cache_ttl_seconds,
-            ) {
+            if let Some(cached) =
+                self.cache
+                    .get(server_name, &fingerprint, server_config.cache_ttl_seconds)
+            {
                 tracing::debug!("Cache hit for MCP server '{server_name}'");
                 return Ok(cached);
             }
@@ -68,19 +73,36 @@ impl McpClient {
         // Fetch from server
         let tools = self.fetch_tools(server_name, server_config).await?;
 
-        // Cache the result
+        // Compress schemas if enabled
+        let (final_tools, _metrics) = if self.compression_enabled {
+            let (compressed, metrics) = compress_tools(&tools);
+            tracing::debug!(
+                "Compressed schemas for '{server_name}': {:.1}% reduction ({} -> {} tokens)",
+                metrics.reduction_percent(),
+                metrics.original_tokens,
+                metrics.compressed_tokens
+            );
+            (compressed, metrics)
+        } else {
+            (tools.clone(), Default::default())
+        };
+
+        // Cache the result (cache compressed version if compression is enabled)
         let _ = self.cache.put(
             server_name,
             &fingerprint,
             server_config.cache_ttl_seconds,
-            &tools,
+            &final_tools,
         );
 
-        Ok(tools)
+        Ok(final_tools)
     }
 
     /// Discover tools from ALL configured servers.
-    pub async fn discover_all_tools(&self, force_refresh: bool) -> HashMap<String, Vec<ToolDefinition>> {
+    pub async fn discover_all_tools(
+        &self,
+        force_refresh: bool,
+    ) -> HashMap<String, Vec<ToolDefinition>> {
         let mut all_tools = HashMap::new();
         for server_name in self.servers.keys() {
             match self.discover_tools(server_name, force_refresh).await {
@@ -107,9 +129,7 @@ impl McpClient {
             .get(server_name)
             .ok_or_else(|| FerroError::Mcp(format!("Server '{server_name}' not configured")))?;
 
-        let raw_result = self
-            .call_tool(server_config, tool_name, arguments)
-            .await?;
+        let raw_result = self.call_tool(server_config, tool_name, arguments).await?;
 
         Ok(format_response(
             &raw_result,
@@ -169,9 +189,10 @@ impl McpClient {
                 ))
             })?;
 
-        let stdin = child.stdin.as_mut().ok_or_else(|| {
-            FerroError::Mcp("Failed to get stdin handle".into())
-        })?;
+        let stdin = child
+            .stdin
+            .as_mut()
+            .ok_or_else(|| FerroError::Mcp("Failed to get stdin handle".into()))?;
 
         // Send initialize request
         let init_req = json!({
@@ -216,9 +237,10 @@ impl McpClient {
 
         // Read responses
         use tokio::io::AsyncBufReadExt;
-        let stdout = child.stdout.take().ok_or_else(|| {
-            FerroError::Mcp("Failed to get stdout handle".into())
-        })?;
+        let stdout = child
+            .stdout
+            .take()
+            .ok_or_else(|| FerroError::Mcp("Failed to get stdout handle".into()))?;
         let reader = tokio::io::BufReader::new(stdout);
         let mut lines = reader.lines();
 
@@ -229,9 +251,8 @@ impl McpClient {
         let timeout = tokio::time::Duration::from_secs(30);
         let read_result = tokio::time::timeout(timeout, async {
             while let Some(line) = lines.next_line().await.transpose() {
-                let line = line.map_err(|e| {
-                    FerroError::Mcp(format!("Failed to read from server: {e}"))
-                })?;
+                let line =
+                    line.map_err(|e| FerroError::Mcp(format!("Failed to read from server: {e}")))?;
 
                 if let Ok(response) = serde_json::from_str::<Value>(&line) {
                     if response.get("id") == Some(&json!(2)) {
@@ -311,9 +332,10 @@ impl McpClient {
             ));
         }
 
-        let command = config.command.as_ref().ok_or_else(|| {
-            FerroError::Mcp("Missing command".into())
-        })?;
+        let command = config
+            .command
+            .as_ref()
+            .ok_or_else(|| FerroError::Mcp("Missing command".into()))?;
 
         let mut child = Command::new(command)
             .args(&config.args)
@@ -372,20 +394,17 @@ impl McpClient {
         let timeout = tokio::time::Duration::from_secs(60);
         let result = tokio::time::timeout(timeout, async {
             while let Some(line) = lines.next_line().await.transpose() {
-                let line = line.map_err(|e| {
-                    FerroError::Mcp(format!("Read error: {e}"))
-                })?;
+                let line = line.map_err(|e| FerroError::Mcp(format!("Read error: {e}")))?;
 
                 if let Ok(response) = serde_json::from_str::<Value>(&line) {
                     if response.get("id") == Some(&json!(2)) {
                         if let Some(result) = response.get("result") {
                             // Extract text content from content array
-                            if let Some(content) = result.get("content").and_then(|c| c.as_array()) {
+                            if let Some(content) = result.get("content").and_then(|c| c.as_array())
+                            {
                                 let text: String = content
                                     .iter()
-                                    .filter_map(|block| {
-                                        block.get("text").and_then(|t| t.as_str())
-                                    })
+                                    .filter_map(|block| block.get("text").and_then(|t| t.as_str()))
                                     .collect::<Vec<_>>()
                                     .join("\n");
                                 let _ = child.kill().await;

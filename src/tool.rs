@@ -1,5 +1,8 @@
 use crate::error::{FerroError, Result};
-use crate::types::{Capability, CapabilitySet, ToolDefinition, ToolMeta, ToolResult, ToolSource};
+use crate::hooks::{HookContext, HookManager};
+use crate::types::{
+    Capability, CapabilitySet, ToolCall, ToolDefinition, ToolMeta, ToolResult, ToolSource,
+};
 use std::collections::HashMap;
 use std::future::Future;
 use std::pin::Pin;
@@ -8,16 +11,13 @@ pub type ToolFuture<'a> = Pin<Box<dyn Future<Output = Result<ToolResult>> + Send
 
 /// A callable tool handler.
 pub trait ToolHandler: Send + Sync {
-    fn call<'a>(
-        &'a self,
-        call_id: &'a str,
-        arguments: &'a serde_json::Value,
-    ) -> ToolFuture<'a>;
+    fn call<'a>(&'a self, call_id: &'a str, arguments: &'a serde_json::Value) -> ToolFuture<'a>;
 }
 
 /// Central registry for all available tools (built-in + MCP + skills).
 pub struct ToolRegistry {
     tools: HashMap<String, RegisteredTool>,
+    hooks: HookManager,
 }
 
 struct RegisteredTool {
@@ -29,15 +29,17 @@ impl ToolRegistry {
     pub fn new() -> Self {
         Self {
             tools: HashMap::new(),
+            hooks: HookManager::new(),
         }
     }
 
+    /// Get a reference to the hook manager.
+    pub fn hooks(&self) -> &HookManager {
+        &self.hooks
+    }
+
     /// Register a tool with its metadata and handler.
-    pub fn register(
-        &mut self,
-        meta: ToolMeta,
-        handler: Box<dyn ToolHandler>,
-    ) {
+    pub fn register(&mut self, meta: ToolMeta, handler: Box<dyn ToolHandler>) {
         let name = meta.definition.name.clone();
         self.tools.insert(name, RegisteredTool { meta, handler });
     }
@@ -78,16 +80,60 @@ impl ToolRegistry {
             .get(name)
             .ok_or_else(|| FerroError::ToolNotFound(name.to_string()))?;
 
+        // Create hook context
+        let hook_ctx = HookContext::new(call_id);
+
+        // Execute pre-tool hooks (permission checks, argument modification)
+        let modified_args = self.hooks.execute_pre_tool(
+            &hook_ctx,
+            &ToolCall {
+                id: call_id.to_string(),
+                name: name.to_string(),
+                arguments: arguments.clone(),
+            },
+        )?;
+
         // Check capabilities
         if let Err(missing) = capabilities.check(&tool.meta.required_capabilities) {
-            return Err(FerroError::CapabilityDenied {
-                tool: name.to_string(),
-                required: missing.to_string(),
-                available: format!("{:?}", capabilities.capabilities),
-            });
+            // Execute permission check hooks
+            match self.hooks.execute_permission_check(
+                &hook_ctx,
+                name,
+                &tool.meta.required_capabilities,
+            ) {
+                Ok(true) => {
+                    // Hook explicitly allowed the operation
+                }
+                Ok(false) => {
+                    // Use default capability check
+                    return Err(FerroError::CapabilityDenied {
+                        tool: name.to_string(),
+                        required: missing.to_string(),
+                        available: format!("{:?}", capabilities.capabilities),
+                    });
+                }
+                Err(e) => {
+                    // Hook denied the operation
+                    return Err(e);
+                }
+            }
         }
 
-        tool.handler.call(call_id, arguments).await
+        // Execute the tool
+        let result = tool.handler.call(call_id, &modified_args).await?;
+
+        // Execute post-tool hooks (result modification, logging, etc.)
+        let final_result = self.hooks.execute_post_tool(
+            &hook_ctx,
+            &ToolCall {
+                id: call_id.to_string(),
+                name: name.to_string(),
+                arguments: modified_args,
+            },
+            &result,
+        )?;
+
+        Ok(final_result)
     }
 
     /// Get all tool definitions for sending to the LLM.
@@ -166,11 +212,7 @@ struct McpPlaceholderHandler {
 }
 
 impl ToolHandler for McpPlaceholderHandler {
-    fn call<'a>(
-        &'a self,
-        call_id: &'a str,
-        _arguments: &'a serde_json::Value,
-    ) -> ToolFuture<'a> {
+    fn call<'a>(&'a self, call_id: &'a str, _arguments: &'a serde_json::Value) -> ToolFuture<'a> {
         let server = self.server_name.clone();
         let id = call_id.to_string();
         Box::pin(async move {

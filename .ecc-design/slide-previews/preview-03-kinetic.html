@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ferroclaw: Kinetic Architecture Preview</title>
+<style>
+  @import url('https://fonts.fontshare.com/f/fk-grotesk-neue.css');
+  @import url('https://fonts.fontshare.com/f/ibm-plex-mono.css');
+
+  :root {
+    --color-bg: #f8f8f8;
+    --color-text: #1a1a1a;
+    --color-accent: #6366f1;
+    --color-accent-light: #e0e7ff;
+    --color-success: #10b981;
+    --font-sans: 'FK Grotesk Neue', sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--color-bg);
+    color: var(--color-text);
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .slide {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    padding: clamp(40px, 6vw, 80px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .preview-label {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-accent);
+    opacity: 0.7;
+  }
+
+  h1 {
+    font-size: clamp(42px, 7vw, 96px);
+    font-weight: 500;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: clamp(20px, 3vw, 40px);
+  }
+
+  .badge {
+    display: inline-block;
+    background: var(--color-accent);
+    color: white;
+    font-family: var(--font-mono);
+    font-size: clamp(10px, 1vw, 12px);
+    padding: 6px 12px;
+    border-radius: 4px;
+    margin-bottom: clamp(20px, 3vw, 40px);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(16px, 2vw, 32px);
+    margin-top: clamp(30px, 5vw, 60px);
+  }
+
+  .card {
+    background: white;
+    border: 1px solid #e5e5e5;
+    padding: clamp(20px, 3vw, 32px);
+    border-radius: 8px;
+  }
+
+  .card-icon {
+    width: 32px;
+    height: 32px;
+    background: var(--color-accent-light);
+    border-radius: 6px;
+    margin-bottom: 12px;
+  }
+
+  .card h3 {
+    font-size: clamp(14px, 1.5vw, 18px);
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+
+  .card p {
+    font-family: var(--font-mono);
+    font-size: clamp(11px, 1.1vw, 13px);
+    color: #666;
+    line-height: 1.5;
+  }
+
+  .evolution {
+    margin-top: clamp(40px, 6vw, 80px);
+    display: flex;
+    align-items: center;
+    gap: clamp(16px, 2vw, 32px);
+    font-family: var(--font-mono);
+    font-size: clamp(11px, 1.2vw, 14px);
+    color: #666;
+  }
+
+  .arrow {
+    color: var(--color-accent);
+    font-size: clamp(18px, 2vw, 24px);
+  }
+</style>
+</head>
+<body>
+  <section class="slide">
+    <span class="preview-label">PREVIEW 3/3 — KINETIC ARCHITECTURE</span>
+
+    <span class="badge">v0.1.0</span>
+
+    <h1>Ferroclaw</h1>
+
+    <div class="grid">
+      <div class="card">
+        <div class="card-icon"></div>
+        <h3>MCP Native</h3>
+        <p>Built-in Model Context Protocol with zero external deps</p>
+      </div>
+      <div class="card">
+        <div class="card-icon"></div>
+        <h3>DietMCP</h3>
+        <p>Context compression reduces token usage by 40%</p>
+      </div>
+      <div class="card">
+        <div class="card-icon"></div>
+        <h3>Kinetic TUI</h3>
+        <p>Terminal interface that breathes with the agent</p>
+      </div>
+    </div>
+
+    <div class="evolution">
+      <span>Orchestrator → Minimal → Kinetic</span>
+      <span class="arrow">→</span>
+      <span>Three TUI generations</span>
+    </div>
+  </section>
+</body>
+</html>

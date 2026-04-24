@@ -58,8 +58,12 @@ fn test_prune_inserts_marker() {
     let ctx = ContextManager::new(50);
     let mut msgs = vec![Message::system("System prompt")];
     for i in 0..30 {
-        msgs.push(Message::user(format!("Long user message number {i} with lots of padding")));
-        msgs.push(Message::assistant(format!("Long assistant response {i} with more padding")));
+        msgs.push(Message::user(format!(
+            "Long user message number {i} with lots of padding"
+        )));
+        msgs.push(Message::assistant(format!(
+            "Long assistant response {i} with more padding"
+        )));
     }
     let original_len = msgs.len();
     ctx.prune_to_fit(&mut msgs);
@@ -107,11 +111,17 @@ fn test_agent_event_tool_call_start() {
     let event = AgentEvent::ToolCallStart {
         id: "tc_1".into(),
         name: "read_file".into(),
+        arguments: r#"{"path":"x"}"#.into(),
     };
     match event {
-        AgentEvent::ToolCallStart { id, name } => {
+        AgentEvent::ToolCallStart {
+            id,
+            name,
+            arguments,
+        } => {
             assert_eq!(id, "tc_1");
             assert_eq!(name, "read_file");
+            assert!(arguments.contains("path"));
         }
         _ => panic!("Wrong variant"),
     }
@@ -122,12 +132,19 @@ fn test_agent_event_tool_result() {
     use ferroclaw::agent::r#loop::AgentEvent;
     let event = AgentEvent::ToolResult {
         id: "tc_1".into(),
+        name: "read_file".into(),
         content: "file contents".into(),
         is_error: false,
     };
     match event {
-        AgentEvent::ToolResult { id, content, is_error } => {
+        AgentEvent::ToolResult {
+            id,
+            name,
+            content,
+            is_error,
+        } => {
             assert_eq!(id, "tc_1");
+            assert_eq!(name, "read_file");
             assert_eq!(content, "file contents");
             assert!(!is_error);
         }
@@ -144,7 +161,11 @@ fn test_agent_event_token_usage() {
         total_used: 150,
     };
     match event {
-        AgentEvent::TokenUsage { input, output, total_used } => {
+        AgentEvent::TokenUsage {
+            input,
+            output,
+            total_used,
+        } => {
             assert_eq!(input, 100);
             assert_eq!(output, 50);
             assert_eq!(total_used, 150);
@@ -166,7 +187,9 @@ fn test_agent_event_error() {
 #[test]
 fn test_agent_event_done() {
     use ferroclaw::agent::r#loop::AgentEvent;
-    let event = AgentEvent::Done { text: "Final answer".into() };
+    let event = AgentEvent::Done {
+        text: "Final answer".into(),
+    };
     match event {
         AgentEvent::Done { text } => assert_eq!(text, "Final answer"),
         _ => panic!("Wrong variant"),

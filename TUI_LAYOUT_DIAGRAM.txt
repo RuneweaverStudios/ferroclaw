@@ -1,0 +1,208 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                         FERROCLAW TUI - CURRENT LAYOUT                          ║
+║                              (Kinetic TUI V3)                                   ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+┌────────────────────────────────────────────────────────────────────────────────┐
+│ KINETIC STATUS BAR (2 lines)                                                    │
+│ ┌────────────────────────────────────────────────────────────────────────────┐ │
+│ │ ● Thinking… model·3 45% ████████░░ 8/s                         ← Line 1     │ │
+│ │ iteration 7 · 12s                                            ← Line 2     │ │
+│ └────────────────────────────────────────────────────────────────────────────┘ │
+│                                                                                  │
+│  SYMBOLS & COLORS:                                                               │
+│    ● = Running (cyan)    ○ = Ready (green)    ●ERROR! = Error (red)            │
+│    █ = Used tokens (cyan)  ░ = Remaining (gray)  8/s = Velocity (yellow)       │
+│    45% = Token percentage (yellow)  iteration 7 = Loop counter (white)         │
+│    12s = Elapsed time (white)                                                   │
+└────────────────────────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────────────────────────┐
+│ CHAT AREA (Bordered, with Bubbles)                                             │
+│ ┌────────────────────────────────────────────────────────────────────────────┐ │
+│ │  You: How do I grep for a pattern across all Rust files?                  │ │
+│ │                                                                              │ │
+│ │  ┌─ Ferroclaw ──────────────────────────────────────────────────────────┐ │ │
+│ │  │ I'll search for your pattern using grep across the src/ directory.   │ │ │
+│ │  └────────────────────────────────────────────────────────────────────────┘ │ │
+│ │                                                                              │ │
+│ │  ⚡ grep "pattern" src/**/*.rs -n                                 [0.2s]  │ │
+│ │                                                                              │ │
+│ │  ← ✓ grep: Found 23 matches in 8 files                                       │ │
+│ │                                                                              │ │
+│ │  Here are the top results...                                                │ │
+│ │                                                                              │ │
+│ └────────────────────────────────────────────────────────────────────────────┘ │
+│                                                                                  │
+│  MESSAGE TYPES:                                                                 │
+│    Cyan/White:  User messages ("You: ...")                                      │
+│    Bubble:      Assistant responses (white border, white text)                 │
+│    Yellow ⚡:   Tool calls (glitches for 2 frames)                              │
+│    Green ← ✓:  Successful tool results                                          │
+│    Red ← ✗:    Error results                                                   │
+└────────────────────────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────────────────────────┐
+│ GLITTER VERBS (Animated status line)                                            │
+│ ┌────────────────────────────────────────────────────────────────────────────┐ │
+│ │ ● Contemplating…                                                    ← Verb │ │
+│ └────────────────────────────────────────────────────────────────────────────┘ │
+│                                                                                  │
+│  VERBS BY CONTEXT:                                                              │
+│    ready              → Idle, waiting for input                                 │
+│    Contemplating…     → Initial LLM thinking (first think)                      │
+│    Reading…           → Active read_file tools                                  │
+│    Writing…           → Active write_file tools                                 │
+│    Searching…         → Active grep/search tools                                │
+│    Executing…         → Active bash commands                                    │
+│    [10s] thinking...  → After 10s of inactivity (nudge)                         │
+└────────────────────────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────────────────────────┐
+│ INPUT AREA (Bordered)                                                           │
+│ ┌────────────────────────────────────────────────────────────────────────────┐ │
+│ │ > Show me the first 10 results_                                            │ │
+│ └────────────────────────────────────────────────────────────────────────────┘ │
+│                                                                                  │
+│  ELEMENTS:                                                                      │
+│    > = Cyan prompt symbol                                                       │
+│    _ = Blinking cursor                                                          │
+│    Cyan text = User input                                                       │
+│    Shift+Enter = Newline for multiline input                                    │
+│    Enter = Send message                                                          │
+└────────────────────────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────────────────────────┐
+│ SCREEN LAYOUT (80x24 terminal example)                                         │
+└────────────────────────────────────────────────────────────────────────────────┘
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ ● Thinking… model·3 45% ████████░░ 8/s                            ║
+║ iteration 7 · 12s                                               ║
+║                                                                     ║
+║ ┌─ Chat ────────────────────────────────────────────────────────────────┐ ║
+║ │                                                                          ║ ║
+║ │  You: How do I grep for a pattern?                                       ║ ║
+║ │                                                                          ║ ║
+║ │  ┌─ Ferroclaw ────────────────────────────────────────────────────────┐ ║ ║
+║ │  │ I'll search for your pattern using grep across the src/ directory.  │ ║ ║
+║ │  └─────────────────────────────────────────────────────────────────────┘ ║ ║
+║ │                                                                          ║ ║
+║ │  ⚡ grep "pattern" src/**/*.rs -n                              [0.2s]  ║ ║
+║ │                                                                          ║ ║
+║ │  ← ✓ grep: Found 23 matches in 8 files                                   ║ ║
+║ │                                                                          ║ ║
+║ └──────────────────────────────────────────────────────────────────────────┘ ║
+║                                                                     ║
+║ ● Contemplating…                                              ║
+║                                                                     ║
+║ ┌─ Type your message... ──────────────────────────────────────────────────┐ ║
+║ │ > Show me the first 10 results_                                         ║ ║
+║ └──────────────────────────────────────────────────────────────────────────┘ ║
+║                                                                     ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+  ↑ scroll · Ctrl+C quit · Shift+Enter newline
+
+┌────────────────────────────────────────────────────────────────────────────────┐
+│ COLOR PALETTE                                                                  │
+└────────────────────────────────────────────────────────────────────────────────┘
+
+Cyan      #06FFFF  ●    Running state, progress bar █, prompt >
+Green     #00FF00  ○    Ready state, success ← ✓
+Yellow    #FFFF00  %    Token %, velocity 8/s, tool calls ⚡
+Red       #FF0000  ✗    Error state, errors ← ✗
+White     #FFFFFF  AI   Assistant responses, normal text
+DarkGray  #444444  model Metadata, model name
+
+┌────────────────────────────────────────────────────────────────────────────────┐
+│ ANIMATIONS                                                                      │
+└────────────────────────────────────────────────────────────────────────────────┘
+
+●  → Thinking indicator:  Pulses when running
+○  → Ready indicator:     Solid green when idle
+⚡  → Glitch effect:       Flickers for 2 frames on new tool calls
+██ → Progress bar:        Updates every tick (100ms)
+✓  → Success marker:      Instant appearance (green)
+✗  → Error marker:        Instant appearance (red)
+
+┌────────────────────────────────────────────────────────────────────────────────┐
+│ ALTERNATIVE: MINIMAL TUI (Not Currently Active)                                │
+└────────────────────────────────────────────────────────────────────────────────┘
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ ●ready model·3                                                    ║
+║                                                                     ║
+║   You: How do I grep for a pattern?                                   ║
+║                                                                      ║
+║   Ferroclaw: I'll search for your pattern across the src/ directory.   ║
+║                                                                      ║
+║   → grep "pattern" src/**/*.rs -n                                     ║
+║   ← ✓ grep: Found 23 matches in 8 files                                ║
+║                                                                      ║
+║   [You] Show me the first 10 results                                  ║
+║ > _                                                                  ║
+║                                                                     ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+KEY DIFFERENCES FROM KINETIC:
+  • No borders (maximum screen space)
+  • Single-line status (●ready model·3)
+  • Transcript format (no bubbles)
+  • Raw markers: → tool, ← ✓ success, ← ✗ error
+  • Brutalist, raw terminal aesthetic
+
+┌────────────────────────────────────────────────────────────────────────────────┐
+│ KEYBOARD CONTROLS                                                               │
+└────────────────────────────────────────────────────────────────────────────────┘
+
+Ctrl+C        Quit TUI
+Enter         Send message
+Shift+Enter   Newline in input
+↑ / ↓         Scroll chat up/down
+PageUp/Down   Scroll by page
+Home/End      Jump to line start/end
+← / →         Move cursor left/right
+Backspace     Delete character before cursor
+Delete        Delete character at cursor
+
+┌────────────────────────────────────────────────────────────────────────────────┐
+│ FILE LOCATIONS                                                                  │
+└────────────────────────────────────────────────────────────────────────────────┘
+
+src/tui/kinetic_tui.rs      ← Current default TUI implementation (520 lines)
+src/tui/minimal_tui.rs      ← Alternative brutalist TUI (450 lines)
+src/tui/app.rs              ← Shared app state (350 lines)
+src/tui/events.rs           ← Event handling (120 lines)
+src/tui/glitter_verbs.rs    ← Animated status verbs (180 lines)
+src/tui/thinking_indicator.rs← Thinking symbol logic (200 lines)
+
+┌────────────────────────────────────────────────────────────────────────────────┐
+│ DESIGN PRINCIPLES (Kinetic TUI)                                                  │
+└────────────────────────────────────────────────────────────────────────────────┘
+
+1. Information First      → Every pixel conveys state
+2. Motion = Life          → Static feels dead, kinetic feels alive
+3. Density Over Whitespace→ Maximize information per line
+4. Symbol Over Label      → Progress bar > "45% used"
+5. Glitch Aesthetic       → Embrace raw terminal, don't hide it
+
+┌────────────────────────────────────────────────────────────────────────────────┐
+│ SUMMARY                                                                         │
+└────────────────────────────────────────────────────────────────────────────────┘
+
+The current Ferroclaw TUI (Kinetic V3) features:
+  • 2-line kinetic status with progress bar and token velocity
+  • Animated thinking indicator (● runs, ○ ready)
+  • Glitch effects on tool calls (⚡ flicker for 2 frames)
+  • Glitter verbs for contextual status updates
+  • Hermes-style borders around chat and input
+  • Chat bubble format for messages
+  • Color-coded tool results (green ✓, red ✗)
+
+This diagram serves as a visual reference for the current TUI layout
+to guide the redesign process.
+
+═════════════════════════════════════════════════════════════════════════════════
+Generated: 2026-04-13
+Based on: src/tui/kinetic_tui.rs implementation
+═════════════════════════════════════════════════════════════════════════════════

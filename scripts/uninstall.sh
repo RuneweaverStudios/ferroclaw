@@ -1,3 +1,11 @@
+# Path: /Users/ghost/Desktop/ferroclaw/scripts/uninstall.sh
+# Module: scripts
+# Purpose: Uninstall module
+# Dependencies: 
+# Related: 
+# Keywords: uninstall, users, ghost, desktop, ferroclaw, scripts, uninstall.sh
+# Last Updated: 2026-03-25
+
 #!/usr/bin/env bash
 # ──────────────────────────────────────────────────────────────────────────────
 # Ferroclaw Uninstaller

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ferroclaw: Brutalist Research Preview</title>
+<style>
+  @import url('https://fonts.fontshare.com/f/azrmnkt.css');
+  @import url('https://fonts.fontshare.com/f/ibm-plex-mono.css');
+
+  :root {
+    --color-bg: #ffffff;
+    --color-text: #0a0a0a;
+    --color-accent: #06ffff;
+    --color-subtle: #444444;
+    --font-display: 'Azrmnkt', serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--font-display);
+    background: var(--color-bg);
+    color: var(--color-text);
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .slide {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    padding: clamp(40px, 6vw, 80px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .preview-label {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-subtle);
+    letter-spacing: 0.05em;
+  }
+
+  h1 {
+    font-size: clamp(48px, 8vw, 120px);
+    font-weight: 400;
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    margin-bottom: clamp(20px, 3vw, 40px);
+  }
+
+  .subtitle {
+    font-family: var(--font-mono);
+    font-size: clamp(14px, 1.5vw, 18px);
+    color: var(--color-subtle);
+    line-height: 1.6;
+    max-width: 600px;
+  }
+
+  .highlight {
+    color: var(--color-accent);
+  }
+
+  .structure {
+    margin-top: clamp(40px, 6vw, 80px);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: clamp(20px, 3vw, 40px);
+    border-top: 2px solid var(--color-text);
+    padding-top: clamp(20px, 3vw, 40px);
+  }
+
+  .stat {
+    font-family: var(--font-mono);
+    font-size: clamp(12px, 1.2vw, 14px);
+    color: var(--color-subtle);
+  }
+
+  .stat strong {
+    display: block;
+    font-size: clamp(24px, 4vw, 48px);
+    color: var(--color-text);
+    font-weight: 400;
+    margin-bottom: 8px;
+  }
+</style>
+</head>
+<body>
+  <section class="slide">
+    <span class="preview-label">PREVIEW 1/3 — BRUTALIST RESEARCH</span>
+
+    <h1>
+      <span class="highlight">Ferroclaw</span><br>
+      Security-First<br>AI Agents
+    </h1>
+
+    <p class="subtitle">
+      A rust framework for autonomous agents with native MCP integration,
+      dietmcp compression, and a brutalist terminal interface.
+    </p>
+
+    <div class="structure">
+      <div class="stat">
+        <strong>530</strong>
+        Lines of kinetic TUI
+      </div>
+      <div class="stat">
+        <strong>0</strong>
+        Compiler warnings
+      </div>
+      <div class="stat">
+        <strong>20</strong>
+        Glitter verb states
+      </div>
+    </div>
+  </section>
+</body>
+</html>

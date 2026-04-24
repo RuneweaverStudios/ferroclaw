@@ -14,7 +14,7 @@ use crate::error::{FerroError, Result};
 use crate::types::Message;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -320,16 +320,14 @@ impl TelegramBot {
                 let user_name = msg
                     .from
                     .as_ref()
-                    .map(|u| {
-                        u.username
-                            .clone()
-                            .unwrap_or_else(|| u.first_name.clone())
-                    })
+                    .map(|u| u.username.clone().unwrap_or_else(|| u.first_name.clone()))
                     .unwrap_or_else(|| "unknown".into());
 
                 // Allowlist check
                 if !self.is_allowed(chat_id) {
-                    tracing::debug!("Telegram: rejected message from chat_id={chat_id} ({user_name})");
+                    tracing::debug!(
+                        "Telegram: rejected message from chat_id={chat_id} ({user_name})"
+                    );
                     continue;
                 }
 
@@ -388,7 +386,10 @@ impl TelegramBot {
                     // Send response
                     match response {
                         Ok((text, _events)) => {
-                            tracing::info!("Telegram [{chat_id}] agent responded ({} chars)", text.len());
+                            tracing::info!(
+                                "Telegram [{chat_id}] agent responded ({} chars)",
+                                text.len()
+                            );
                             match bot.send_long_message(chat_id, &text, None).await {
                                 Ok(_) => tracing::info!("Telegram [{chat_id}] message delivered"),
                                 Err(e) => tracing::error!("Telegram [{chat_id}] send failed: {e}"),

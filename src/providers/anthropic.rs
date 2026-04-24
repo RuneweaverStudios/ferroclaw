@@ -5,7 +5,7 @@ use crate::types::{
     Message, MessageContent, ProviderResponse, Role, TokenUsage, ToolCall, ToolDefinition,
 };
 use reqwest::Client;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 pub struct AnthropicProvider {
     api_key: String,
@@ -32,7 +32,8 @@ impl AnthropicProvider {
         model: &str,
         max_tokens: u32,
     ) -> Value {
-        let system_msgs: Vec<&Message> = messages.iter().filter(|m| m.role == Role::System).collect();
+        let system_msgs: Vec<&Message> =
+            messages.iter().filter(|m| m.role == Role::System).collect();
         let non_system: Vec<Value> = messages
             .iter()
             .filter(|m| m.role != Role::System)
@@ -165,14 +166,8 @@ impl AnthropicProvider {
         }
 
         let usage = body.get("usage").map(|u| TokenUsage {
-            input_tokens: u
-                .get("input_tokens")
-                .and_then(|t| t.as_u64())
-                .unwrap_or(0),
-            output_tokens: u
-                .get("output_tokens")
-                .and_then(|t| t.as_u64())
-                .unwrap_or(0),
+            input_tokens: u.get("input_tokens").and_then(|t| t.as_u64()).unwrap_or(0),
+            output_tokens: u.get("output_tokens").and_then(|t| t.as_u64()).unwrap_or(0),
         });
 
         let stop_reason = body
@@ -256,11 +251,8 @@ mod tests {
 
     #[test]
     fn test_format_user_message() {
-        let provider = AnthropicProvider::new(
-            "test".into(),
-            "https://api.anthropic.com".into(),
-            8192,
-        );
+        let provider =
+            AnthropicProvider::new("test".into(), "https://api.anthropic.com".into(), 8192);
         let msg = Message::user("Hello");
         let formatted = provider.format_message(&msg);
         assert_eq!(formatted["role"], "user");
@@ -269,11 +261,8 @@ mod tests {
 
     #[test]
     fn test_format_tool_result() {
-        let provider = AnthropicProvider::new(
-            "test".into(),
-            "https://api.anthropic.com".into(),
-            8192,
-        );
+        let provider =
+            AnthropicProvider::new("test".into(), "https://api.anthropic.com".into(), 8192);
         let msg = Message::tool_result("tc_123", "file contents here");
         let formatted = provider.format_message(&msg);
         assert_eq!(formatted["role"], "user");
@@ -283,11 +272,8 @@ mod tests {
 
     #[test]
     fn test_parse_response_text_only() {
-        let provider = AnthropicProvider::new(
-            "test".into(),
-            "https://api.anthropic.com".into(),
-            8192,
-        );
+        let provider =
+            AnthropicProvider::new("test".into(), "https://api.anthropic.com".into(), 8192);
         let body = json!({
             "content": [{"type": "text", "text": "Hello!"}],
             "usage": {"input_tokens": 10, "output_tokens": 5},
@@ -300,11 +286,8 @@ mod tests {
 
     #[test]
     fn test_parse_response_with_tool_use() {
-        let provider = AnthropicProvider::new(
-            "test".into(),
-            "https://api.anthropic.com".into(),
-            8192,
-        );
+        let provider =
+            AnthropicProvider::new("test".into(), "https://api.anthropic.com".into(), 8192);
         let body = json!({
             "content": [
                 {"type": "text", "text": "Let me read that file."},
@@ -326,15 +309,9 @@ mod tests {
 
     #[test]
     fn test_build_request_body() {
-        let provider = AnthropicProvider::new(
-            "test".into(),
-            "https://api.anthropic.com".into(),
-            8192,
-        );
-        let messages = vec![
-            Message::system("You are helpful."),
-            Message::user("Hello"),
-        ];
+        let provider =
+            AnthropicProvider::new("test".into(), "https://api.anthropic.com".into(), 8192);
+        let messages = vec![Message::system("You are helpful."), Message::user("Hello")];
         let tools = vec![ToolDefinition {
             name: "read_file".into(),
             description: "Read a file".into(),

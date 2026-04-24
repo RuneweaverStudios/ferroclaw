@@ -35,7 +35,12 @@ impl SchemaCache {
     }
 
     /// Get cached tools for a server, if present and not expired.
-    pub fn get(&self, server_name: &str, config_fingerprint: &str, ttl: u64) -> Option<Vec<ToolDefinition>> {
+    pub fn get(
+        &self,
+        server_name: &str,
+        config_fingerprint: &str,
+        ttl: u64,
+    ) -> Option<Vec<ToolDefinition>> {
         let key = self.make_key(server_name, config_fingerprint);
         let path = self.cache_dir.join(format!("{key}.json"));
 

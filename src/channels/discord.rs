@@ -161,9 +161,7 @@ pub fn chunk_message(content: &str, max_len: usize) -> Vec<String> {
         }
 
         // Try to split at a newline near the limit
-        let split_at = remaining[..max_len]
-            .rfind('\n')
-            .unwrap_or(max_len);
+        let split_at = remaining[..max_len].rfind('\n').unwrap_or(max_len);
 
         chunks.push(remaining[..split_at].to_string());
         remaining = &remaining[split_at..].trim_start_matches('\n');

@@ -43,22 +43,38 @@ pub fn run_wizard() -> anyhow::Result<()> {
 
     match provider_choice {
         1 => providers.anthropic = setup_provider("Anthropic", "ANTHROPIC_API_KEY", &mut env_vars),
-        2 => providers.openai = setup_provider_with_url("OpenAI", "OPENAI_API_KEY", "https://api.openai.com/v1", &mut env_vars),
+        2 => {
+            providers.openai = setup_provider_with_url(
+                "OpenAI",
+                "OPENAI_API_KEY",
+                "https://api.openai.com/v1",
+                &mut env_vars,
+            )
+        }
         3 => providers.zai = setup_provider("Zai GLM", "ZAI_API_KEY", &mut env_vars),
-        4 => providers.openrouter = setup_provider("OpenRouter", "OPENROUTER_API_KEY", &mut env_vars),
+        4 => {
+            providers.openrouter = setup_provider("OpenRouter", "OPENROUTER_API_KEY", &mut env_vars)
+        }
         5 => {
             println!("\n  Configure each provider you want:\n");
             if confirm("    Anthropic?", true) {
-                providers.anthropic = setup_provider("Anthropic", "ANTHROPIC_API_KEY", &mut env_vars);
+                providers.anthropic =
+                    setup_provider("Anthropic", "ANTHROPIC_API_KEY", &mut env_vars);
             }
             if confirm("    OpenAI?", false) {
-                providers.openai = setup_provider_with_url("OpenAI", "OPENAI_API_KEY", "https://api.openai.com/v1", &mut env_vars);
+                providers.openai = setup_provider_with_url(
+                    "OpenAI",
+                    "OPENAI_API_KEY",
+                    "https://api.openai.com/v1",
+                    &mut env_vars,
+                );
             }
             if confirm("    Zai GLM?", false) {
                 providers.zai = setup_provider("Zai GLM", "ZAI_API_KEY", &mut env_vars);
             }
             if confirm("    OpenRouter?", false) {
-                providers.openrouter = setup_provider("OpenRouter", "OPENROUTER_API_KEY", &mut env_vars);
+                providers.openrouter =
+                    setup_provider("OpenRouter", "OPENROUTER_API_KEY", &mut env_vars);
             }
         }
         _ => providers.anthropic = setup_provider("Anthropic", "ANTHROPIC_API_KEY", &mut env_vars),
@@ -75,7 +91,9 @@ pub fn run_wizard() -> anyhow::Result<()> {
     println!("    1) Restricted   Read-only. No shell, no writes, no network.");
     println!("                    Capabilities: fs_read, memory_read\n");
     println!("    2) Standard     Read + web + memory. No shell or file writes.");
-    println!("                    Capabilities: fs_read, net_outbound, memory_read, memory_write\n");
+    println!(
+        "                    Capabilities: fs_read, net_outbound, memory_read, memory_write\n"
+    );
     println!("    3) Full         All capabilities enabled (for trusted environments).");
     println!("                    Capabilities: all 8 types\n");
 
@@ -85,8 +103,14 @@ pub fn run_wizard() -> anyhow::Result<()> {
         1 => vec!["fs_read", "memory_read"],
         2 => vec!["fs_read", "net_outbound", "memory_read", "memory_write"],
         3 => vec![
-            "fs_read", "fs_write", "net_outbound", "net_listen",
-            "process_exec", "memory_read", "memory_write", "browser_control",
+            "fs_read",
+            "fs_write",
+            "net_outbound",
+            "net_listen",
+            "process_exec",
+            "memory_read",
+            "memory_write",
+            "browser_control",
         ],
         _ => vec!["fs_read", "net_outbound", "memory_read", "memory_write"],
     };
@@ -166,7 +190,11 @@ pub fn run_wizard() -> anyhow::Result<()> {
         mcp_servers.push(McpEntry {
             name: "filesystem".into(),
             command: "npx".into(),
-            args: vec!["-y".into(), "@modelcontextprotocol/server-filesystem".into(), path],
+            args: vec![
+                "-y".into(),
+                "@modelcontextprotocol/server-filesystem".into(),
+                path,
+            ],
             env: HashMap::new(),
         });
         println!();
@@ -193,7 +221,10 @@ pub fn run_wizard() -> anyhow::Result<()> {
 
     println!("  Provider(s):  {}", providers.summary());
     println!("  Model:        {default_model}");
-    println!("  Security:     {profile_name} ({} capabilities)", capabilities.len());
+    println!(
+        "  Security:     {profile_name} ({} capabilities)",
+        capabilities.len()
+    );
     println!(
         "  Skills:       {}",
         if load_bundled {
@@ -207,14 +238,22 @@ pub fn run_wizard() -> anyhow::Result<()> {
     );
     println!(
         "  Channels:     {}",
-        if channels.any() { channels.summary() } else { "CLI + HTTP gateway".into() }
+        if channels.any() {
+            channels.summary()
+        } else {
+            "CLI + HTTP gateway".into()
+        }
     );
     println!(
         "  MCP servers:  {}",
         if mcp_servers.is_empty() {
             "none".into()
         } else {
-            mcp_servers.iter().map(|s| s.name.as_str()).collect::<Vec<_>>().join(", ")
+            mcp_servers
+                .iter()
+                .map(|s| s.name.as_str())
+                .collect::<Vec<_>>()
+                .join(", ")
         }
     );
     println!("  Gateway:      127.0.0.1:{gateway_port}");
@@ -244,8 +283,14 @@ pub fn run_wizard() -> anyhow::Result<()> {
 
     // Write config.toml
     let toml = generate_config_toml(
-        &providers, &default_model, &capabilities, load_bundled,
-        &enabled_categories, &channels, &mcp_servers, gateway_port,
+        &providers,
+        &default_model,
+        &capabilities,
+        load_bundled,
+        &enabled_categories,
+        &channels,
+        &mcp_servers,
+        gateway_port,
     );
     std::fs::write(&config_path, &toml)?;
 
@@ -274,7 +319,7 @@ pub fn run_wizard() -> anyhow::Result<()> {
     println!();
     println!("  Setup complete.");
     println!();
-    println!("    {}",  config_path.display());
+    println!("    {}", config_path.display());
     if !env_vars.is_empty() {
         println!("    {}  (chmod 600)", env_path.display());
     }
@@ -327,7 +372,10 @@ fn print_banner() {
     println!(r"/ /  |  __/ |  | | | (_) | (__| | (_| |\ V  V / ");
     println!(r"\/    \___|_|  |_|  \___/ \___|_|\__,_| \_/\_/  ");
     println!();
-    println!("  v{}  —  Security-first AI agent", env!("CARGO_PKG_VERSION"));
+    println!(
+        "  v{}  —  Security-first AI agent",
+        env!("CARGO_PKG_VERSION")
+    );
     println!("  84 skills | 7 channels | 4 providers | DietMCP");
     println!();
     divider();
@@ -355,7 +403,11 @@ fn prompt_string(label: &str, default: &str) -> String {
     let mut input = String::new();
     io::stdin().read_line(&mut input).unwrap_or_default();
     let input = input.trim();
-    if input.is_empty() { default.to_string() } else { input.to_string() }
+    if input.is_empty() {
+        default.to_string()
+    } else {
+        input.to_string()
+    }
 }
 
 /// Prompt for a secret value (API key, token). Shows masked hint.
@@ -381,7 +433,7 @@ fn prompt_secret(label: &str) -> String {
 
     if !input.is_empty() {
         let masked = if input.len() > 8 {
-            format!("{}...{}", &input[..4], &input[input.len()-4..])
+            format!("{}...{}", &input[..4], &input[input.len() - 4..])
         } else {
             "****".into()
         };
@@ -447,7 +499,11 @@ fn confirm(label: &str, default: bool) -> bool {
     let mut input = String::new();
     io::stdin().read_line(&mut input).unwrap_or_default();
     let input = input.trim().to_lowercase();
-    if input.is_empty() { default } else { input.starts_with('y') }
+    if input.is_empty() {
+        default
+    } else {
+        input.starts_with('y')
+    }
 }
 
 fn prompt_choice(label: &str, min: u32, max: u32, default: u32) -> u32 {
@@ -457,9 +513,13 @@ fn prompt_choice(label: &str, min: u32, max: u32, default: u32) -> u32 {
         let mut input = String::new();
         io::stdin().read_line(&mut input).unwrap_or_default();
         let input = input.trim();
-        if input.is_empty() { return default; }
+        if input.is_empty() {
+            return default;
+        }
         if let Ok(n) = input.parse::<u32>() {
-            if n >= min && n <= max { return n; }
+            if n >= min && n <= max {
+                return n;
+            }
         }
         println!("  Please enter a number between {min} and {max}.");
     }
@@ -484,13 +544,24 @@ struct ProviderEntry {
 impl ProviderSetup {
     fn summary(&self) -> String {
         let mut names = Vec::new();
-        if self.anthropic.is_some() { names.push("Anthropic"); }
-        if self.openai.is_some() { names.push("OpenAI"); }
-        if self.zai.is_some() { names.push("Zai GLM"); }
-        if self.openrouter.is_some() { names.push("OpenRouter"); }
-        if names.is_empty() { "none".into() } else { names.join(", ") }
+        if self.anthropic.is_some() {
+            names.push("Anthropic");
+        }
+        if self.openai.is_some() {
+            names.push("OpenAI");
+        }
+        if self.zai.is_some() {
+            names.push("Zai GLM");
+        }
+        if self.openrouter.is_some() {
+            names.push("OpenRouter");
+        }
+        if names.is_empty() {
+            "none".into()
+        } else {
+            names.join(", ")
+        }
     }
-
 }
 
 fn setup_provider(
@@ -507,7 +578,10 @@ fn setup_provider(
     env_vars.push((env_var.into(), key));
 
     let models = match name {
-        "Anthropic" => vec!["claude-sonnet-4-20250514".into(), "claude-opus-4-20250514".into()],
+        "Anthropic" => vec![
+            "claude-sonnet-4-20250514".into(),
+            "claude-opus-4-20250514".into(),
+        ],
         "Zai GLM" => vec!["glm-5".into(), "glm-4.6".into()],
         "OpenRouter" => vec![
             "anthropic/claude-sonnet-4".into(),
@@ -521,7 +595,11 @@ fn setup_provider(
         _ => vec![],
     };
 
-    Some(ProviderEntry { env_var: env_var.into(), base_url: None, models })
+    Some(ProviderEntry {
+        env_var: env_var.into(),
+        base_url: None,
+        models,
+    })
 }
 
 fn setup_provider_with_url(
@@ -539,27 +617,45 @@ fn setup_provider_with_url(
     env_vars.push((env_var.into(), key));
 
     let base = prompt_string("    Base URL", default_url);
-    let base_url = if base == default_url { None } else { Some(base) };
+    let base_url = if base == default_url {
+        None
+    } else {
+        Some(base)
+    };
 
     let models = vec!["gpt-4o".into(), "gpt-4o-mini".into()];
-    Some(ProviderEntry { env_var: env_var.into(), base_url, models })
+    Some(ProviderEntry {
+        env_var: env_var.into(),
+        base_url,
+        models,
+    })
 }
 
 fn pick_default_model(providers: &ProviderSetup) -> String {
     let mut options: Vec<(String, String)> = Vec::new();
     if let Some(ref p) = providers.anthropic {
-        for m in &p.models { options.push((m.clone(), "Anthropic".into())); }
+        for m in &p.models {
+            options.push((m.clone(), "Anthropic".into()));
+        }
     }
     if let Some(ref p) = providers.openai {
-        for m in &p.models { options.push((m.clone(), "OpenAI".into())); }
+        for m in &p.models {
+            options.push((m.clone(), "OpenAI".into()));
+        }
     }
     if let Some(ref p) = providers.zai {
-        for m in &p.models { options.push((m.clone(), "Zai".into())); }
+        for m in &p.models {
+            options.push((m.clone(), "Zai".into()));
+        }
     }
     if let Some(ref p) = providers.openrouter {
-        for m in &p.models { options.push((m.clone(), "OpenRouter".into())); }
+        for m in &p.models {
+            options.push((m.clone(), "OpenRouter".into()));
+        }
     }
-    if options.is_empty() { return "claude-sonnet-4-20250514".into(); }
+    if options.is_empty() {
+        return "claude-sonnet-4-20250514".into();
+    }
     if options.len() == 1 {
         println!("  Using: {} ({})", options[0].0, options[0].1);
         return options[0].0.clone();
@@ -588,35 +684,68 @@ struct ChannelSetup {
 
 impl ChannelSetup {
     fn any(&self) -> bool {
-        self.telegram.is_some() || self.discord.is_some() || self.slack.is_some()
-            || self.whatsapp.is_some() || self.signal.is_some()
-            || self.email.is_some() || self.homeassistant.is_some()
+        self.telegram.is_some()
+            || self.discord.is_some()
+            || self.slack.is_some()
+            || self.whatsapp.is_some()
+            || self.signal.is_some()
+            || self.email.is_some()
+            || self.homeassistant.is_some()
     }
     fn summary(&self) -> String {
         let mut n = Vec::new();
-        if self.telegram.is_some() { n.push("Telegram"); }
-        if self.discord.is_some() { n.push("Discord"); }
-        if self.slack.is_some() { n.push("Slack"); }
-        if self.whatsapp.is_some() { n.push("WhatsApp"); }
-        if self.signal.is_some() { n.push("Signal"); }
-        if self.email.is_some() { n.push("Email"); }
-        if self.homeassistant.is_some() { n.push("Home Assistant"); }
+        if self.telegram.is_some() {
+            n.push("Telegram");
+        }
+        if self.discord.is_some() {
+            n.push("Discord");
+        }
+        if self.slack.is_some() {
+            n.push("Slack");
+        }
+        if self.whatsapp.is_some() {
+            n.push("WhatsApp");
+        }
+        if self.signal.is_some() {
+            n.push("Signal");
+        }
+        if self.email.is_some() {
+            n.push("Email");
+        }
+        if self.homeassistant.is_some() {
+            n.push("Home Assistant");
+        }
         n.join(", ")
     }
 }
 
 struct TelegramEntry;
-struct DiscordEntry { prefix: String }
+struct DiscordEntry {
+    prefix: String,
+}
 struct SlackEntry;
-struct WhatsAppEntry { phone_number_id: String }
-struct SignalEntry { api_url: String, phone_number: String }
-struct EmailEntry { smtp_host: String, smtp_port: u16, from_address: String }
-struct HomeAssistantEntry { api_url: String }
+struct WhatsAppEntry {
+    phone_number_id: String,
+}
+struct SignalEntry {
+    api_url: String,
+    phone_number: String,
+}
+struct EmailEntry {
+    smtp_host: String,
+    smtp_port: u16,
+    from_address: String,
+}
+struct HomeAssistantEntry {
+    api_url: String,
+}
 
 fn setup_channel_telegram(env_vars: &mut Vec<(String, String)>) -> Option<TelegramEntry> {
     println!();
     let key = prompt_secret("      Paste your Telegram bot token");
-    if key.is_empty() { return None; }
+    if key.is_empty() {
+        return None;
+    }
     env_vars.push(("TELEGRAM_BOT_TOKEN".into(), key));
     Some(TelegramEntry)
 }
@@ -624,7 +753,9 @@ fn setup_channel_telegram(env_vars: &mut Vec<(String, String)>) -> Option<Telegr
 fn setup_channel_discord(env_vars: &mut Vec<(String, String)>) -> Option<DiscordEntry> {
     println!();
     let key = prompt_secret("      Paste your Discord bot token");
-    if key.is_empty() { return None; }
+    if key.is_empty() {
+        return None;
+    }
     env_vars.push(("DISCORD_BOT_TOKEN".into(), key));
     let prefix = prompt_string("      Command prefix", "!fc ");
     Some(DiscordEntry { prefix })
@@ -633,7 +764,9 @@ fn setup_channel_discord(env_vars: &mut Vec<(String, String)>) -> Option<Discord
 fn setup_channel_slack(env_vars: &mut Vec<(String, String)>) -> Option<SlackEntry> {
     println!();
     let bot = prompt_secret("      Paste your Slack bot token (xoxb-...)");
-    if bot.is_empty() { return None; }
+    if bot.is_empty() {
+        return None;
+    }
     env_vars.push(("SLACK_BOT_TOKEN".into(), bot));
     let app = prompt_secret("      Paste your Slack app token (xapp-...)");
     if !app.is_empty() {
@@ -645,14 +778,18 @@ fn setup_channel_slack(env_vars: &mut Vec<(String, String)>) -> Option<SlackEntr
 fn setup_channel_whatsapp(env_vars: &mut Vec<(String, String)>) -> Option<WhatsAppEntry> {
     println!();
     let key = prompt_secret("      Paste your WhatsApp API token");
-    if key.is_empty() { return None; }
+    if key.is_empty() {
+        return None;
+    }
     env_vars.push(("WHATSAPP_API_TOKEN".into(), key));
     let phone_id = prompt_string("      Phone number ID", "");
     if phone_id.is_empty() {
         println!("      Skipped (phone number ID required).");
         return None;
     }
-    Some(WhatsAppEntry { phone_number_id: phone_id })
+    Some(WhatsAppEntry {
+        phone_number_id: phone_id,
+    })
 }
 
 fn setup_channel_signal() -> Option<SignalEntry> {
@@ -663,15 +800,22 @@ fn setup_channel_signal() -> Option<SignalEntry> {
         println!("      Skipped (phone number required).");
         return None;
     }
-    Some(SignalEntry { api_url: url, phone_number: phone })
+    Some(SignalEntry {
+        api_url: url,
+        phone_number: phone,
+    })
 }
 
 fn setup_channel_email(env_vars: &mut Vec<(String, String)>) -> Option<EmailEntry> {
     println!();
     let host = prompt_string("      SMTP host", "smtp.gmail.com");
-    let port: u16 = prompt_string("      SMTP port", "587").parse().unwrap_or(587);
+    let port: u16 = prompt_string("      SMTP port", "587")
+        .parse()
+        .unwrap_or(587);
     let user = prompt_string("      SMTP username", "");
-    if user.is_empty() { return None; }
+    if user.is_empty() {
+        return None;
+    }
     env_vars.push(("EMAIL_USERNAME".into(), user));
     let pass = prompt_secret("      SMTP password");
     if !pass.is_empty() {
@@ -682,14 +826,23 @@ fn setup_channel_email(env_vars: &mut Vec<(String, String)>) -> Option<EmailEntr
         println!("      Skipped (from address required).");
         return None;
     }
-    Some(EmailEntry { smtp_host: host, smtp_port: port, from_address: from })
+    Some(EmailEntry {
+        smtp_host: host,
+        smtp_port: port,
+        from_address: from,
+    })
 }
 
 fn setup_channel_ha(env_vars: &mut Vec<(String, String)>) -> Option<HomeAssistantEntry> {
     println!();
-    let url = prompt_string("      Home Assistant URL", "http://homeassistant.local:8123");
+    let url = prompt_string(
+        "      Home Assistant URL",
+        "http://homeassistant.local:8123",
+    );
     let token = prompt_secret("      Paste your HA long-lived access token");
-    if token.is_empty() { return None; }
+    if token.is_empty() {
+        return None;
+    }
     env_vars.push(("HA_TOKEN".into(), token));
     Some(HomeAssistantEntry { api_url: url })
 }
@@ -748,7 +901,9 @@ fn verify_api_key(providers: &ProviderSetup) -> bool {
 
     if let Some(ref p) = providers.anthropic {
         let key = std::env::var(&p.env_var).unwrap_or_default();
-        if key.is_empty() { return false; }
+        if key.is_empty() {
+            return false;
+        }
         let base = p.base_url.as_deref().unwrap_or("https://api.anthropic.com");
         let resp = client
             .post(format!("{base}/v1/messages"))
@@ -765,7 +920,9 @@ fn verify_api_key(providers: &ProviderSetup) -> bool {
 
     if let Some(ref p) = providers.openai {
         let key = std::env::var(&p.env_var).unwrap_or_default();
-        if key.is_empty() { return false; }
+        if key.is_empty() {
+            return false;
+        }
         let base = p.base_url.as_deref().unwrap_or("https://api.openai.com/v1");
         let resp = client
             .get(format!("{base}/models"))
@@ -784,7 +941,9 @@ fn verify_api_key(providers: &ProviderSetup) -> bool {
 
     if let Some(ref p) = providers.openrouter {
         let key = std::env::var(&p.env_var).unwrap_or_default();
-        if key.is_empty() { return false; }
+        if key.is_empty() {
+            return false;
+        }
         let resp = client
             .get("https://openrouter.ai/api/v1/models")
             .header("Authorization", format!("Bearer {key}"))
@@ -827,7 +986,10 @@ fn load_env_from_path(env_path: &std::path::Path) {
     let content = match std::fs::read_to_string(env_path) {
         Ok(c) => c,
         Err(e) => {
-            eprintln!("[ferroclaw] warning: could not read {}: {e}", env_path.display());
+            eprintln!(
+                "[ferroclaw] warning: could not read {}: {e}",
+                env_path.display()
+            );
             return;
         }
     };
@@ -876,13 +1038,17 @@ fn generate_config_toml(
     if let Some(ref p) = providers.anthropic {
         t.push_str("[providers.anthropic]\n");
         t.push_str(&format!("api_key_env = \"{}\"\n", p.env_var));
-        if let Some(ref url) = p.base_url { t.push_str(&format!("base_url = \"{url}\"\n")); }
+        if let Some(ref url) = p.base_url {
+            t.push_str(&format!("base_url = \"{url}\"\n"));
+        }
         t.push('\n');
     }
     if let Some(ref p) = providers.openai {
         t.push_str("[providers.openai]\n");
         t.push_str(&format!("api_key_env = \"{}\"\n", p.env_var));
-        if let Some(ref url) = p.base_url { t.push_str(&format!("base_url = \"{url}\"\n")); }
+        if let Some(ref url) = p.base_url {
+            t.push_str(&format!("base_url = \"{url}\"\n"));
+        }
         t.push('\n');
     }
     if let Some(ref p) = providers.zai {
@@ -903,7 +1069,9 @@ fn generate_config_toml(
     t.push_str("require_skill_signatures = true\naudit_enabled = true\n\n");
 
     // Gateway
-    t.push_str(&format!("[gateway]\nbind = \"127.0.0.1\"\nport = {gateway_port}\n\n"));
+    t.push_str(&format!(
+        "[gateway]\nbind = \"127.0.0.1\"\nport = {gateway_port}\n\n"
+    ));
 
     // Skills
     t.push_str("[skills]\n");
@@ -940,14 +1108,20 @@ fn generate_config_toml(
         t.push_str("allowed_numbers = []\n\n");
     }
     if let Some(ref e) = channels.email {
-        t.push_str(&format!("[channels.email]\nsmtp_host = \"{}\"\n", e.smtp_host));
+        t.push_str(&format!(
+            "[channels.email]\nsmtp_host = \"{}\"\n",
+            e.smtp_host
+        ));
         t.push_str(&format!("smtp_port = {}\n", e.smtp_port));
         t.push_str("username_env = \"EMAIL_USERNAME\"\npassword_env = \"EMAIL_PASSWORD\"\n");
         t.push_str(&format!("from_address = \"{}\"\n", e.from_address));
         t.push_str("allowed_addresses = []\n\n");
     }
     if let Some(ref ha) = channels.homeassistant {
-        t.push_str(&format!("[channels.homeassistant]\napi_url = \"{}\"\n", ha.api_url));
+        t.push_str(&format!(
+            "[channels.homeassistant]\napi_url = \"{}\"\n",
+            ha.api_url
+        ));
         t.push_str("token_env = \"HA_TOKEN\"\n\n");
     }
 
@@ -958,7 +1132,11 @@ fn generate_config_toml(
         let a: Vec<String> = s.args.iter().map(|a| format!("\"{a}\"")).collect();
         t.push_str(&format!("args = [{}]\n", a.join(", ")));
         if !s.env.is_empty() {
-            let e: Vec<String> = s.env.iter().map(|(k, v)| format!("{k} = \"{v}\"")).collect();
+            let e: Vec<String> = s
+                .env
+                .iter()
+                .map(|(k, v)| format!("{k} = \"{v}\""))
+                .collect();
             t.push_str(&format!("env = {{ {} }}\n", e.join(", ")));
         }
         t.push('\n');

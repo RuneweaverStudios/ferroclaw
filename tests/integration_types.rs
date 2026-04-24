@@ -150,8 +150,12 @@ fn test_context_manager_prune_preserves_system() {
     ];
     // Add many messages to exceed budget
     for i in 2..20 {
-        msgs.push(Message::user(format!("Long message number {i} with padding text")));
-        msgs.push(Message::assistant(format!("Long response number {i} with more padding")));
+        msgs.push(Message::user(format!(
+            "Long message number {i} with padding text"
+        )));
+        msgs.push(Message::assistant(format!(
+            "Long response number {i} with more padding"
+        )));
     }
 
     let original_len = msgs.len();
@@ -196,10 +200,20 @@ fn test_capability_display() {
 
 #[test]
 fn test_capability_set_check_multiple() {
-    let set = CapabilitySet::new([Capability::FsRead, Capability::FsWrite, Capability::NetOutbound]);
+    let set = CapabilitySet::new([
+        Capability::FsRead,
+        Capability::FsWrite,
+        Capability::NetOutbound,
+    ]);
     // Check multiple at once
-    assert!(set.check(&[Capability::FsRead, Capability::FsWrite]).is_ok());
-    assert!(set.check(&[Capability::FsRead, Capability::ProcessExec]).is_err());
+    assert!(
+        set.check(&[Capability::FsRead, Capability::FsWrite])
+            .is_ok()
+    );
+    assert!(
+        set.check(&[Capability::FsRead, Capability::ProcessExec])
+            .is_err()
+    );
 }
 
 #[test]

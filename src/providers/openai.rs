@@ -4,7 +4,7 @@ use crate::types::{
     Message, MessageContent, ProviderResponse, Role, TokenUsage, ToolCall, ToolDefinition,
 };
 use reqwest::Client;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 /// OpenAI-compatible provider. Works with OpenAI, OpenRouter, Ollama, and any
 /// endpoint that implements the OpenAI chat completions API.
@@ -33,10 +33,8 @@ impl OpenAiProvider {
         model: &str,
         max_tokens: u32,
     ) -> Value {
-        let formatted_messages: Vec<Value> = messages
-            .iter()
-            .map(|m| self.format_message(m))
-            .collect();
+        let formatted_messages: Vec<Value> =
+            messages.iter().map(|m| self.format_message(m)).collect();
 
         let mut body = json!({
             "model": model,
@@ -148,10 +146,7 @@ impl OpenAiProvider {
             .unwrap_or_default();
 
         let usage = body.get("usage").map(|u| TokenUsage {
-            input_tokens: u
-                .get("prompt_tokens")
-                .and_then(|t| t.as_u64())
-                .unwrap_or(0),
+            input_tokens: u.get("prompt_tokens").and_then(|t| t.as_u64()).unwrap_or(0),
             output_tokens: u
                 .get("completion_tokens")
                 .and_then(|t| t.as_u64())

@@ -289,6 +289,30 @@ cargo bench --bench diet_compression
 
 ---
 
+## Features
+
+Ferroclaw extends Claude Code's capabilities with 10 major features:
+
+### Task Management
+- **TaskSystem** - SQLite-backed task tracking with dependencies and status workflow
+- **PlanMode** - Structured 4-phase planning (Research, Planning, Implementation, Verification)
+
+### Memory & Editing
+- **MemdirSystem** - File-based persistent memory with automatic truncation
+- **FileEditTool** - Safe file editing through exact string replacement
+
+### Git Workflow
+- **Commit Command** - Automated conventional commit generation
+- **Review Command** - Code review with quality scoring and issue detection
+
+### Extensibility
+- **AgentTool** - Spawn specialized subagents with isolated context
+- **HookSystem** - Event-driven extensibility with 6 lifecycle hooks
+
+**Documentation**: See [`FEATURES.md`](FEATURES.md) for complete feature reference
+
+---
+
 ## Documentation
 
 | Document | Description |

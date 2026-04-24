@@ -2,8 +2,8 @@
 //! schema compression ratios, formatting, auto-redirect, skill summaries.
 
 use ferroclaw::mcp::diet::{
-    auto_redirect, format_response, generate_skill_summary, render_all_summaries,
-    render_skill_summary, DietFormat,
+    DietFormat, auto_redirect, format_response, generate_skill_summary, render_all_summaries,
+    render_skill_summary,
 };
 use ferroclaw::types::ToolDefinition;
 use serde_json::json;
@@ -180,9 +180,15 @@ fn test_compact_signatures_are_readable() {
     for tool in &tools {
         let sig = tool.compact_signature();
         // Every signature should contain the tool name
-        assert!(sig.starts_with(&tool.name), "Signature doesn't start with name: {sig}");
+        assert!(
+            sig.starts_with(&tool.name),
+            "Signature doesn't start with name: {sig}"
+        );
         // Every signature should have parentheses
-        assert!(sig.contains('(') && sig.contains(')'), "Signature missing parens: {sig}");
+        assert!(
+            sig.contains('(') && sig.contains(')'),
+            "Signature missing parens: {sig}"
+        );
     }
 }
 
@@ -203,9 +209,18 @@ fn test_compact_signature_marks_optional_params() {
         server_name: None,
     };
     let sig = tool.compact_signature();
-    assert!(sig.contains("query: str"), "Missing required param in: {sig}");
-    assert!(sig.contains("?limit: int"), "Missing optional marker in: {sig}");
-    assert!(sig.contains("?offset: int"), "Missing optional marker in: {sig}");
+    assert!(
+        sig.contains("query: str"),
+        "Missing required param in: {sig}"
+    );
+    assert!(
+        sig.contains("?limit: int"),
+        "Missing optional marker in: {sig}"
+    );
+    assert!(
+        sig.contains("?offset: int"),
+        "Missing optional marker in: {sig}"
+    );
 }
 
 #[test]

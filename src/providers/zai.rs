@@ -14,7 +14,7 @@ use crate::types::{
     Message, MessageContent, ProviderResponse, Role, TokenUsage, ToolCall, ToolDefinition,
 };
 use reqwest::Client;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 const ZAI_MODELS: &[&str] = &[
     "glm-5",
@@ -49,8 +49,7 @@ impl ZaiProvider {
         model: &str,
         max_tokens: u32,
     ) -> Value {
-        let formatted_messages: Vec<Value> =
-            messages.iter().map(|m| format_message(m)).collect();
+        let formatted_messages: Vec<Value> = messages.iter().map(|m| format_message(m)).collect();
 
         let mut body = json!({
             "model": model,
@@ -118,10 +117,7 @@ impl ZaiProvider {
             .unwrap_or_default();
 
         let usage = body.get("usage").map(|u| TokenUsage {
-            input_tokens: u
-                .get("prompt_tokens")
-                .and_then(|t| t.as_u64())
-                .unwrap_or(0),
+            input_tokens: u.get("prompt_tokens").and_then(|t| t.as_u64()).unwrap_or(0),
             output_tokens: u
                 .get("completion_tokens")
                 .and_then(|t| t.as_u64())
@@ -176,9 +172,7 @@ impl LlmProvider for ZaiProvider {
             let response_body: Value = response
                 .json()
                 .await
-                .map_err(|e| {
-                    FerroError::Provider(format!("Failed to parse Zai response: {e}"))
-                })?;
+                .map_err(|e| FerroError::Provider(format!("Failed to parse Zai response: {e}")))?;
 
             if !status.is_success() {
                 let error_msg = response_body
@@ -272,10 +266,7 @@ mod tests {
 
     #[test]
     fn test_parse_zai_text_response() {
-        let provider = ZaiProvider::new(
-            "test".into(),
-            "https://api.z.ai/api/paas/v4".into(),
-        );
+        let provider = ZaiProvider::new("test".into(), "https://api.z.ai/api/paas/v4".into());
         let body = json!({
             "choices": [{
                 "message": {
@@ -296,10 +287,7 @@ mod tests {
 
     #[test]
     fn test_parse_zai_tool_call_response() {
-        let provider = ZaiProvider::new(
-            "test".into(),
-            "https://api.z.ai/api/paas/v4".into(),
-        );
+        let provider = ZaiProvider::new("test".into(), "https://api.z.ai/api/paas/v4".into());
         let body = json!({
             "choices": [{
                 "message": {
@@ -330,10 +318,7 @@ mod tests {
 
     #[test]
     fn test_build_request_with_tools() {
-        let provider = ZaiProvider::new(
-            "test".into(),
-            "https://api.z.ai/api/paas/v4".into(),
-        );
+        let provider = ZaiProvider::new("test".into(), "https://api.z.ai/api/paas/v4".into());
         let messages = vec![Message::user("What's the weather?")];
         let tools = vec![ToolDefinition {
             name: "get_weather".into(),

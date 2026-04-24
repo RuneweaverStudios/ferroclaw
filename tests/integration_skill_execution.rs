@@ -100,9 +100,18 @@ fn test_every_skill_interpolates_with_all_params() {
         // check_url uses curl's %{var} format (%{{http_code}}, etc.) which the
         // interpolation engine treats as required params. Supply them so interpolation works.
         if skill.name == "check_url" {
-            args.insert("http_code".into(), serde_json::Value::String("%{http_code}".into()));
-            args.insert("time_total".into(), serde_json::Value::String("%{time_total}".into()));
-            args.insert("size_download".into(), serde_json::Value::String("%{size_download}".into()));
+            args.insert(
+                "http_code".into(),
+                serde_json::Value::String("%{http_code}".into()),
+            );
+            args.insert(
+                "time_total".into(),
+                serde_json::Value::String("%{time_total}".into()),
+            );
+            args.insert(
+                "size_download".into(),
+                serde_json::Value::String("%{size_download}".into()),
+            );
         }
 
         let result = h.interpolate(&serde_json::Value::Object(args));
@@ -170,7 +179,11 @@ async fn test_exec_find_files() {
     let h = handler(&skill);
     let args = serde_json::json!({"path": "/tmp", "pattern": "*.txt"});
     let result = h.call("test", &args).await;
-    assert!(result.is_ok(), "find_files execution failed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "find_files execution failed: {:?}",
+        result.err()
+    );
     // find may return empty, but command should succeed
     let tool_result = result.unwrap();
     assert!(
@@ -187,7 +200,11 @@ async fn test_exec_tree_view() {
     let h = handler(&skill);
     let args = serde_json::json!({"path": "/tmp", "depth": "2"});
     let result = h.call("test", &args).await;
-    assert!(result.is_ok(), "tree_view execution failed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "tree_view execution failed: {:?}",
+        result.err()
+    );
     let tool_result = result.unwrap();
     assert!(
         !tool_result.is_error,
@@ -203,7 +220,11 @@ async fn test_exec_file_info() {
     let h = handler(&skill);
     let args = serde_json::json!({"path": "/tmp"});
     let result = h.call("test", &args).await;
-    assert!(result.is_ok(), "file_info execution failed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "file_info execution failed: {:?}",
+        result.err()
+    );
     let tool_result = result.unwrap();
     assert!(
         !tool_result.is_error,
@@ -219,7 +240,11 @@ async fn test_exec_tail_file() {
     let h = handler(&skill);
     let args = serde_json::json!({"path": "/dev/null", "lines": "5"});
     let result = h.call("test", &args).await;
-    assert!(result.is_ok(), "tail_file execution failed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "tail_file execution failed: {:?}",
+        result.err()
+    );
     let tool_result = result.unwrap();
     assert!(
         !tool_result.is_error,
@@ -233,7 +258,8 @@ fn test_interpolate_copy_file() {
     let skills = bundled_skills();
     let skill = find_skill(&skills, "copy_file");
     let h = handler(&skill);
-    let args = serde_json::json!({"source": "/tmp/a.txt", "destination": "/tmp/b.txt", "flags": "-r"});
+    let args =
+        serde_json::json!({"source": "/tmp/a.txt", "destination": "/tmp/b.txt", "flags": "-r"});
     let result = h.interpolate(&args).unwrap();
     assert!(result.contains("/tmp/a.txt"));
     assert!(result.contains("/tmp/b.txt"));
@@ -260,7 +286,11 @@ async fn test_exec_git_status() {
     let h = handler(&skill);
     let args = serde_json::json!({"path": project_root()});
     let result = h.call("test", &args).await;
-    assert!(result.is_ok(), "git_status execution failed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "git_status execution failed: {:?}",
+        result.err()
+    );
     let tool_result = result.unwrap();
     assert!(
         !tool_result.is_error,
@@ -276,7 +306,11 @@ async fn test_exec_git_log() {
     let h = handler(&skill);
     let args = serde_json::json!({"path": project_root(), "count": "3"});
     let result = h.call("test", &args).await;
-    assert!(result.is_ok(), "git_log execution failed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "git_log execution failed: {:?}",
+        result.err()
+    );
     // git_log may fail if no commits yet, but the command itself should run
 }
 
@@ -287,7 +321,11 @@ async fn test_exec_git_diff() {
     let h = handler(&skill);
     let args = serde_json::json!({"path": project_root()});
     let result = h.call("test", &args).await;
-    assert!(result.is_ok(), "git_diff execution failed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "git_diff execution failed: {:?}",
+        result.err()
+    );
     let tool_result = result.unwrap();
     assert!(
         !tool_result.is_error,
@@ -303,7 +341,11 @@ async fn test_exec_git_branch() {
     let h = handler(&skill);
     let args = serde_json::json!({"path": project_root()});
     let result = h.call("test", &args).await;
-    assert!(result.is_ok(), "git_branch execution failed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "git_branch execution failed: {:?}",
+        result.err()
+    );
 }
 
 #[test]
@@ -362,7 +404,11 @@ async fn test_exec_grep_code() {
         "glob": "*.rs"
     });
     let result = h.call("test", &args).await;
-    assert!(result.is_ok(), "grep_code execution failed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "grep_code execution failed: {:?}",
+        result.err()
+    );
     let tool_result = result.unwrap();
     assert!(
         !tool_result.is_error,
@@ -385,7 +431,11 @@ async fn test_exec_count_lines() {
     let src_path = format!("{}/src", root);
     let args = serde_json::json!({"path": src_path});
     let result = h.call("test", &args).await;
-    assert!(result.is_ok(), "count_lines execution failed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "count_lines execution failed: {:?}",
+        result.err()
+    );
 }
 
 #[tokio::test]
@@ -401,7 +451,11 @@ async fn test_exec_find_definition() {
         "glob": "*.rs"
     });
     let result = h.call("test", &args).await;
-    assert!(result.is_ok(), "find_definition execution failed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "find_definition execution failed: {:?}",
+        result.err()
+    );
     let tool_result = result.unwrap();
     assert!(
         !tool_result.is_error,
@@ -423,7 +477,11 @@ async fn test_exec_find_references() {
         "glob": "*.rs"
     });
     let result = h.call("test", &args).await;
-    assert!(result.is_ok(), "find_references execution failed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "find_references execution failed: {:?}",
+        result.err()
+    );
     let tool_result = result.unwrap();
     assert!(
         !tool_result.is_error,
@@ -451,7 +509,11 @@ async fn test_exec_code_complexity() {
     let src_path = format!("{}/src", root);
     let args = serde_json::json!({"path": src_path});
     let result = h.call("test", &args).await;
-    assert!(result.is_ok(), "code_complexity execution failed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "code_complexity execution failed: {:?}",
+        result.err()
+    );
 }
 
 // ── Web Skills (INTERPOLATION ONLY — requires external URLs) ─────────────────
@@ -721,7 +783,11 @@ async fn test_exec_process_list() {
     let h = handler(&skill);
     let args = serde_json::json!({});
     let result = h.call("test", &args).await;
-    assert!(result.is_ok(), "process_list execution failed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "process_list execution failed: {:?}",
+        result.err()
+    );
     let tool_result = result.unwrap();
     assert!(
         !tool_result.is_error,
@@ -741,7 +807,11 @@ async fn test_exec_system_info() {
     let h = handler(&skill);
     let args = serde_json::json!({});
     let result = h.call("test", &args).await;
-    assert!(result.is_ok(), "system_info execution failed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "system_info execution failed: {:?}",
+        result.err()
+    );
     let tool_result = result.unwrap();
     assert!(
         !tool_result.is_error,
@@ -761,7 +831,11 @@ async fn test_exec_disk_usage() {
     let h = handler(&skill);
     let args = serde_json::json!({"path": "/tmp"});
     let result = h.call("test", &args).await;
-    assert!(result.is_ok(), "disk_usage execution failed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "disk_usage execution failed: {:?}",
+        result.err()
+    );
     let tool_result = result.unwrap();
     assert!(
         !tool_result.is_error,
@@ -777,7 +851,11 @@ async fn test_exec_env_var() {
     let h = handler(&skill);
     let args = serde_json::json!({"name": "HOME"});
     let result = h.call("test", &args).await;
-    assert!(result.is_ok(), "env_var execution failed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "env_var execution failed: {:?}",
+        result.err()
+    );
     let tool_result = result.unwrap();
     assert!(
         !tool_result.is_error,
@@ -797,7 +875,11 @@ async fn test_exec_which_command() {
     let h = handler(&skill);
     let args = serde_json::json!({"command": "bash"});
     let result = h.call("test", &args).await;
-    assert!(result.is_ok(), "which_command execution failed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "which_command execution failed: {:?}",
+        result.err()
+    );
     let tool_result = result.unwrap();
     assert!(
         !tool_result.is_error,
@@ -817,7 +899,11 @@ async fn test_exec_uptime_info() {
     let h = handler(&skill);
     let args = serde_json::json!({});
     let result = h.call("test", &args).await;
-    assert!(result.is_ok(), "uptime_info execution failed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "uptime_info execution failed: {:?}",
+        result.err()
+    );
     let tool_result = result.unwrap();
     assert!(
         !tool_result.is_error,
@@ -839,7 +925,11 @@ async fn test_exec_json_query() {
     let h = handler(&skill);
     let args = serde_json::json!({"json": "{\"a\":1}", "expression": ".a"});
     let result = h.call("test", &args).await;
-    assert!(result.is_ok(), "json_query execution failed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "json_query execution failed: {:?}",
+        result.err()
+    );
     let tool_result = result.unwrap();
     assert!(
         !tool_result.is_error,
@@ -882,7 +972,11 @@ async fn test_exec_regex_match() {
     let h = handler(&skill);
     let args = serde_json::json!({"text": "hello world", "pattern": "hello"});
     let result = h.call("test", &args).await;
-    assert!(result.is_ok(), "regex_match execution failed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "regex_match execution failed: {:?}",
+        result.err()
+    );
     let tool_result = result.unwrap();
     assert!(
         !tool_result.is_error,
@@ -950,7 +1044,11 @@ async fn test_exec_dns_lookup() {
     let h = handler(&skill);
     let args = serde_json::json!({"host": "example.com"});
     let result = h.call("test", &args).await;
-    assert!(result.is_ok(), "dns_lookup execution failed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "dns_lookup execution failed: {:?}",
+        result.err()
+    );
     let tool_result = result.unwrap();
     // DNS lookup should succeed on most systems
     assert!(
@@ -967,7 +1065,11 @@ async fn test_exec_local_ip() {
     let h = handler(&skill);
     let args = serde_json::json!({});
     let result = h.call("test", &args).await;
-    assert!(result.is_ok(), "local_ip execution failed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "local_ip execution failed: {:?}",
+        result.err()
+    );
     let tool_result = result.unwrap();
     assert!(
         !tool_result.is_error,
@@ -986,7 +1088,11 @@ async fn test_exec_hash_file() {
     let cargo_toml = format!("{}/Cargo.toml", project_root());
     let args = serde_json::json!({"path": cargo_toml, "algorithm": "256"});
     let result = h.call("test", &args).await;
-    assert!(result.is_ok(), "hash_file execution failed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "hash_file execution failed: {:?}",
+        result.err()
+    );
     let tool_result = result.unwrap();
     assert!(
         !tool_result.is_error,
@@ -1008,7 +1114,11 @@ async fn test_exec_check_permissions() {
     let cargo_toml = format!("{}/Cargo.toml", project_root());
     let args = serde_json::json!({"path": cargo_toml});
     let result = h.call("test", &args).await;
-    assert!(result.is_ok(), "check_permissions execution failed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "check_permissions execution failed: {:?}",
+        result.err()
+    );
     let tool_result = result.unwrap();
     assert!(
         !tool_result.is_error,
@@ -1026,7 +1136,11 @@ async fn test_exec_scan_secrets() {
     let src_path = format!("{}/src", root);
     let args = serde_json::json!({"path": src_path});
     let result = h.call("test", &args).await;
-    assert!(result.is_ok(), "scan_secrets execution failed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "scan_secrets execution failed: {:?}",
+        result.err()
+    );
     // scan_secrets might or might not find anything — just check it runs
 }
 
@@ -1037,7 +1151,11 @@ async fn test_exec_generate_password() {
     let h = handler(&skill);
     let args = serde_json::json!({"length": "16", "chars": "22"});
     let result = h.call("test", &args).await;
-    assert!(result.is_ok(), "generate_password execution failed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "generate_password execution failed: {:?}",
+        result.err()
+    );
     let tool_result = result.unwrap();
     assert!(
         !tool_result.is_error,
@@ -1057,7 +1175,11 @@ async fn test_exec_encode_base64() {
     let h = handler(&skill);
     let args = serde_json::json!({"text": "hello world"});
     let result = h.call("test", &args).await;
-    assert!(result.is_ok(), "encode_base64 execution failed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "encode_base64 execution failed: {:?}",
+        result.err()
+    );
     let tool_result = result.unwrap();
     assert!(
         !tool_result.is_error,
@@ -1082,7 +1204,11 @@ async fn test_exec_word_count() {
     let cargo_toml = format!("{}/Cargo.toml", project_root());
     let args = serde_json::json!({"path": cargo_toml});
     let result = h.call("test", &args).await;
-    assert!(result.is_ok(), "word_count execution failed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "word_count execution failed: {:?}",
+        result.err()
+    );
     let tool_result = result.unwrap();
     assert!(
         !tool_result.is_error,
@@ -1109,7 +1235,11 @@ async fn test_exec_doc_links_check() {
     let h = handler(&skill);
     let args = serde_json::json!({"path": project_root()});
     let result = h.call("test", &args).await;
-    assert!(result.is_ok(), "doc_links_check execution failed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "doc_links_check execution failed: {:?}",
+        result.err()
+    );
     // This may or may not find broken links; just ensure it runs
 }
 
@@ -1120,7 +1250,11 @@ async fn test_exec_changelog_entry() {
     let h = handler(&skill);
     let args = serde_json::json!({"path": project_root(), "version": "0.1.0"});
     let result = h.call("test", &args).await;
-    assert!(result.is_ok(), "changelog_entry execution failed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "changelog_entry execution failed: {:?}",
+        result.err()
+    );
 }
 
 #[tokio::test]
@@ -1130,7 +1264,11 @@ async fn test_exec_readme_check() {
     let h = handler(&skill);
     let args = serde_json::json!({"path": project_root()});
     let result = h.call("test", &args).await;
-    assert!(result.is_ok(), "readme_check execution failed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "readme_check execution failed: {:?}",
+        result.err()
+    );
     let tool_result = result.unwrap();
     assert!(
         !tool_result.is_error,
@@ -1148,7 +1286,9 @@ fn test_interpolate_run_tests() {
     let h = handler(&skill);
     let args = serde_json::json!({"path": ".", "flags": "--lib"});
     let result = h.interpolate(&args).unwrap();
-    assert!(result.contains("cargo test") || result.contains("npm test") || result.contains("pytest"));
+    assert!(
+        result.contains("cargo test") || result.contains("npm test") || result.contains("pytest")
+    );
 }
 
 #[test]
@@ -1220,7 +1360,11 @@ async fn test_exec_cargo_deps() {
     let h = handler(&skill);
     let args = serde_json::json!({"path": project_root()});
     let result = h.call("test", &args).await;
-    assert!(result.is_ok(), "cargo_deps execution failed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "cargo_deps execution failed: {:?}",
+        result.err()
+    );
     let tool_result = result.unwrap();
     assert!(
         !tool_result.is_error,
@@ -1273,7 +1417,11 @@ async fn test_exec_env_check() {
     let h = handler(&skill);
     let args = serde_json::json!({"vars": "HOME PATH"});
     let result = h.call("test", &args).await;
-    assert!(result.is_ok(), "env_check execution failed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "env_check execution failed: {:?}",
+        result.err()
+    );
     let tool_result = result.unwrap();
     assert!(
         !tool_result.is_error,
@@ -1364,7 +1512,11 @@ async fn test_exec_file_checksum() {
     let cargo_toml = format!("{}/Cargo.toml", project_root());
     let args = serde_json::json!({"path": cargo_toml});
     let result = h.call("test", &args).await;
-    assert!(result.is_ok(), "file_checksum execution failed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "file_checksum execution failed: {:?}",
+        result.err()
+    );
     let tool_result = result.unwrap();
     assert!(
         !tool_result.is_error,
@@ -1427,9 +1579,18 @@ fn test_all_87_skills_interpolation_coverage() {
         // check_url uses curl's %{var} format which the regex engine treats as {{var}}.
         // Supply those pseudo-params so interpolation succeeds.
         if skill.name == "check_url" {
-            args.insert("http_code".into(), serde_json::Value::String("%{http_code}".into()));
-            args.insert("time_total".into(), serde_json::Value::String("%{time_total}".into()));
-            args.insert("size_download".into(), serde_json::Value::String("%{size_download}".into()));
+            args.insert(
+                "http_code".into(),
+                serde_json::Value::String("%{http_code}".into()),
+            );
+            args.insert(
+                "time_total".into(),
+                serde_json::Value::String("%{time_total}".into()),
+            );
+            args.insert(
+                "size_download".into(),
+                serde_json::Value::String("%{size_download}".into()),
+            );
         }
 
         let result = h.interpolate(&serde_json::Value::Object(args.clone()));
@@ -1462,11 +1623,7 @@ fn test_all_87_skills_interpolation_coverage() {
         "{} skill(s) failed interpolation",
         failed.len()
     );
-    assert_eq!(
-        passed,
-        skills.len(),
-        "Not all skills passed interpolation"
-    );
+    assert_eq!(passed, skills.len(), "Not all skills passed interpolation");
 }
 
 /// Categorized summary: prints count of skills tested per category.
@@ -1485,7 +1642,12 @@ fn test_skill_categories_summary() {
     let mut total = 0;
     for cat in ferroclaw::skills::manifest::SkillCategory::all() {
         if let Some(names) = by_cat.get(cat) {
-            eprintln!("  {} ({}): {}", cat.display_name(), names.len(), names.join(", "));
+            eprintln!(
+                "  {} ({}): {}",
+                cat.display_name(),
+                names.len(),
+                names.join(", ")
+            );
             total += names.len();
         }
     }

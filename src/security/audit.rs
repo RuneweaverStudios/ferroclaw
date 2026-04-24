@@ -108,7 +108,7 @@ impl AuditLog {
                         entries: count,
                         valid: false,
                         first_invalid: Some(i),
-                    })
+                    });
                 }
             };
 

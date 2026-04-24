@@ -1,0 +1,23 @@
+# Ferroclaw Test Configuration
+# Used for automated testing environment
+
+[agent]
+default_model = "claude-sonnet-4-20250514"
+max_iterations = 30
+token_budget = 200000
+
+[providers.anthropic]
+api_key_env = "ANTHROPIC_API_KEY"
+
+[security]
+default_capabilities = ["fs_read", "net_outbound", "memory_read", "memory_write"]
+require_skill_signatures = true
+audit_enabled = true
+
+[gateway]
+bind = "127.0.0.1"
+port = 8420
+
+[mcp_servers.filesystem]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"]

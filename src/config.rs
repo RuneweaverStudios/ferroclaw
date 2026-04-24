@@ -95,9 +95,13 @@ fn default_system_prompt() -> String {
          User's home directory: {}\n\
          Operating system: {}\n\
          Current working directory: {}",
-        dirs::home_dir().map(|p| p.display().to_string()).unwrap_or_else(|| "unknown".into()),
+        dirs::home_dir()
+            .map(|p| p.display().to_string())
+            .unwrap_or_else(|| "unknown".into()),
         std::env::consts::OS,
-        std::env::current_dir().map(|p| p.display().to_string()).unwrap_or_else(|_| "unknown".into()),
+        std::env::current_dir()
+            .map(|p| p.display().to_string())
+            .unwrap_or_else(|_| "unknown".into()),
     )
 }
 
@@ -511,7 +515,10 @@ pub fn load_config(path: Option<&Path>) -> Result<Config> {
     }
 
     let content = std::fs::read_to_string(&config_path).map_err(|e| {
-        FerroError::Config(format!("Failed to read config at {}: {e}", config_path.display()))
+        FerroError::Config(format!(
+            "Failed to read config at {}: {e}",
+            config_path.display()
+        ))
     })?;
 
     toml::from_str(&content).map_err(|e| {

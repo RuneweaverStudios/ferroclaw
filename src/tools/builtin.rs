@@ -1,19 +1,41 @@
-//! Built-in tools: filesystem, bash, web_fetch, memory.
+//! Built-in tools: filesystem, bash, web_fetch, memory, file_edit, glob, commit, agent,
+//! analyze_code, collaboration, refactor_code, generate_tests, review_code, find_bugs,
+//! execute_code, evaluate_result, monitoring, build.
 
 use crate::error::FerroError;
 use crate::memory::MemoryStore;
 use crate::tool::{ToolFuture, ToolHandler, ToolRegistry};
+use crate::tools::agent::{AgentTool, agent_tool_meta};
+use crate::tools::glob::{GlobTool, glob_tool_meta};
+use crate::tools::grep::{GrepTool, grep_tool_meta};
 use crate::types::{Capability, ToolDefinition, ToolMeta, ToolResult, ToolSource};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
+use crate::tools::commit::CommitHandler;
+use crate::tools::file_edit::FileEditHandler;
+
+// New tool imports
+use crate::tools::analyze_code::{AnalyzeCodeHandler, analyze_code_meta};
+use crate::tools::build::{BuildHandler, build_meta};
+use crate::tools::collaboration::{
+    CommentHandler, NotifyUserHandler, RequestApprovalHandler, ShareContextHandler, comment_meta,
+    notify_user_meta, request_approval_meta, share_context_meta,
+};
+use crate::tools::evaluate_result::{EvaluateResultHandler, evaluate_result_meta};
+use crate::tools::execute_code::{ExecuteCodeHandler, execute_code_meta};
+use crate::tools::find_bugs::{FindBugsHandler, find_bugs_meta};
+use crate::tools::generate_tests::{GenerateTestsHandler, generate_tests_meta};
+use crate::tools::monitoring::{
+    GetLogsHandler, MeasureMetricsHandler, TraceExecutionHandler, get_logs_meta,
+    measure_metrics_meta, trace_execution_meta,
+};
+use crate::tools::refactor_code::{RefactorCodeHandler, refactor_code_meta};
+use crate::tools::review_code::{ReviewCodeHandler, review_code_meta};
+
 /// Register all built-in tools into the registry.
-pub fn register_builtin_tools(
-    registry: &mut ToolRegistry,
-    memory: Arc<Mutex<MemoryStore>>,
-) {
-    // read_file
+pub fn register_builtin_tools(registry: &mut ToolRegistry, memory: Arc<Mutex<MemoryStore>>) {
     registry.register(
         ToolMeta {
             definition: ToolDefinition {
@@ -70,7 +92,7 @@ pub fn register_builtin_tools(
         ToolMeta {
             definition: ToolDefinition {
                 name: "list_directory".into(),
-                description: "List contents of a directory".into(),
+                description: "List the contents of a directory".into(),
                 input_schema: json!({
                     "type": "object",
                     "properties": {
@@ -192,6 +214,116 @@ pub fn register_builtin_tools(
             store: Arc::clone(&memory),
         }),
     );
+
+    // file_edit
+    registry.register(
+        ToolMeta {
+            definition: ToolDefinition {
+                name: "file_edit".into(),
+                description: "Perform exact string replacement in a file. Ensures that old_string exists and is unique before making changes. Atomic write operations for safety.".into(),
+                input_schema: json!({
+                    "type": "object",
+                    "properties": {
+                        "file_path": {
+                            "type": "string",
+                            "description": "Absolute path to the file to edit"
+                        },
+                        "old_string": {
+                            "type": "string",
+                            "description": "The exact string to replace (must be unique in the file)"
+                        },
+                        "new_string": {
+                            "type": "string",
+                            "description": "The replacement string"
+                        }
+                    },
+                    "required": ["file_path", "old_string", "new_string"]
+                }),
+                server_name: None,
+            },
+            required_capabilities: vec![Capability::FsRead, Capability::FsWrite],
+            source: ToolSource::Builtin,
+        },
+        Box::new(FileEditHandler),
+    );
+
+    // glob
+    registry.register(glob_tool_meta(), Box::new(GlobTool::new()));
+
+    // grep
+    registry.register(grep_tool_meta(), Box::new(GrepTool::new()));
+
+    // agent
+    registry.register(agent_tool_meta(), Box::new(AgentTool::new()));
+
+    // commit
+    registry.register(
+        ToolMeta {
+            definition: ToolDefinition {
+                name: "commit".into(),
+                description: "Create a git commit with conventional commits format. Analyzes staged changes, generates commit message, and optionally creates the commit. Supports --yes flag for auto-approval and --amend for amending previous commit.".into(),
+                input_schema: json!({
+                    "type": "object",
+                    "properties": {
+                        "repo_path": {
+                            "type": "string",
+                            "description": "Path to the git repository (default: current directory)"
+                        },
+                        "yes": {
+                            "type": "boolean",
+                            "description": "Auto-approve commit without interactive prompt"
+                        },
+                        "amend": {
+                            "type": "boolean",
+                            "description": "Amend the previous commit instead of creating a new one"
+                        }
+                    },
+                    "required": []
+                }),
+                server_name: None,
+            },
+            required_capabilities: vec![Capability::ProcessExec],
+            source: ToolSource::Builtin,
+        },
+        Box::new(CommitHandler),
+    );
+
+    // ========== NEW TOOLS ==========
+
+    // analyze_code
+    registry.register(analyze_code_meta(), Box::new(AnalyzeCodeHandler));
+
+    // Collaboration tools
+    registry.register(notify_user_meta(), Box::new(NotifyUserHandler));
+    registry.register(request_approval_meta(), Box::new(RequestApprovalHandler));
+    registry.register(share_context_meta(), Box::new(ShareContextHandler));
+    registry.register(comment_meta(), Box::new(CommentHandler));
+
+    // Code intelligence tools
+    registry.register(refactor_code_meta(), Box::new(RefactorCodeHandler));
+    registry.register(generate_tests_meta(), Box::new(GenerateTestsHandler));
+    registry.register(review_code_meta(), Box::new(ReviewCodeHandler));
+    registry.register(find_bugs_meta(), Box::new(FindBugsHandler));
+
+    // Execution tools
+    registry.register(execute_code_meta(), Box::new(ExecuteCodeHandler));
+
+    // Reasoning tools
+    registry.register(evaluate_result_meta(), Box::new(EvaluateResultHandler));
+
+    // Monitoring tools
+    registry.register(get_logs_meta(), Box::new(GetLogsHandler::new()));
+    registry.register(
+        trace_execution_meta(),
+        Box::new(TraceExecutionHandler::new()),
+    );
+    registry.register(
+        measure_metrics_meta(),
+        Box::new(MeasureMetricsHandler::new()),
+    );
+
+    // Development workflow tools
+    registry.register(build_meta(), Box::new(BuildHandler));
 }
 
 // --- Tool Handlers ---
@@ -350,7 +482,11 @@ impl ToolHandler for WebFetchHandler {
 
                     // Limit response size
                     let truncated = if body.len() > 50_000 {
-                        format!("{}...\n[Truncated: {} total chars]", &body[..50_000], body.len())
+                        format!(
+                            "{}...\n[Truncated: {} total chars]",
+                            &body[..50_000],
+                            body.len()
+                        )
                     } else {
                         body
                     };

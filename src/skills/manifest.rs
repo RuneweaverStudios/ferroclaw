@@ -123,7 +123,10 @@ pub fn bash_skill(
     for p in params {
         let mut prop = serde_json::Map::new();
         prop.insert("type".into(), Value::String(p.param_type.to_string()));
-        prop.insert("description".into(), Value::String(p.description.to_string()));
+        prop.insert(
+            "description".into(),
+            Value::String(p.description.to_string()),
+        );
         if let Some(ref default) = p.default {
             prop.insert("default".into(), Value::String(default.clone()));
         }

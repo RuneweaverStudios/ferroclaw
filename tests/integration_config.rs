@@ -1,6 +1,6 @@
 //! Integration tests for configuration loading, validation, and provider routing.
 
-use ferroclaw::config::{self, Config, ZaiConfig, OpenRouterConfig};
+use ferroclaw::config::{self, Config, OpenRouterConfig, ZaiConfig};
 use ferroclaw::providers;
 
 #[test]
@@ -102,7 +102,10 @@ fn test_provider_routing_openrouter_requires_config() {
         Ok(_) => panic!("Expected OpenRouter config error"),
         Err(e) => {
             let err = e.to_string();
-            assert!(err.contains("OpenRouter"), "Expected OpenRouter error, got: {err}");
+            assert!(
+                err.contains("OpenRouter"),
+                "Expected OpenRouter error, got: {err}"
+            );
         }
     }
 }
@@ -114,7 +117,10 @@ fn test_provider_routing_unknown_model_falls_through() {
         Ok(_) => panic!("Expected fallthrough error"),
         Err(e) => {
             let err = e.to_string();
-            assert!(err.contains("No provider configured"), "Expected fallthrough, got: {err}");
+            assert!(
+                err.contains("No provider configured"),
+                "Expected fallthrough, got: {err}"
+            );
         }
     }
 }
@@ -201,7 +207,10 @@ api_key_env = "OPENROUTER_API_KEY"
     }
 
     let w: Wrapper = toml::from_str(toml_str).unwrap();
-    assert_eq!(w.providers.openrouter.base_url, "https://openrouter.ai/api/v1");
+    assert_eq!(
+        w.providers.openrouter.base_url,
+        "https://openrouter.ai/api/v1"
+    );
     assert!(w.providers.openrouter.site_url.is_none());
     assert!(w.providers.openrouter.site_name.is_none());
 }

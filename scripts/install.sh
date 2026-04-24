@@ -1,3 +1,12 @@
+# Path: /Users/ghost/Desktop/ferroclaw/scripts/install.sh
+# Module: scripts
+# Purpose: Install module
+# Dependencies: it immediately
+            if [ -f "$HOME/.cargo/env" ]
+# Related: 
+# Keywords: install, users, ghost, desktop, ferroclaw, scripts, install.sh
+# Last Updated: 2026-03-25
+
 #!/usr/bin/env bash
 # ──────────────────────────────────────────────────────────────────────────────
 # Ferroclaw Installer

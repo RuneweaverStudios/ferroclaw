@@ -1,1 +1,17 @@
+pub mod agent;
+pub mod analyze_code;
+pub mod build;
 pub mod builtin;
+pub mod collaboration;
+pub mod commit;
+pub mod evaluate_result;
+pub mod execute_code;
+pub mod file_edit;
+pub mod filter;
+pub mod find_bugs;
+pub mod generate_tests;
+pub mod glob;
+pub mod grep;
+pub mod monitoring;
+pub mod refactor_code;
+pub mod review_code;

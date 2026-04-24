@@ -132,8 +132,10 @@ fn test_app_scroll_bounds() {
 #[test]
 fn test_app_clear_chat() {
     let mut app = App::new("test".into(), 100_000);
-    app.chat_history.push(ChatEntry::UserMessage("hello".into()));
-    app.chat_history.push(ChatEntry::AssistantMessage("hi".into()));
+    app.chat_history
+        .push(ChatEntry::UserMessage("hello".into()));
+    app.chat_history
+        .push(ChatEntry::AssistantMessage("hi".into()));
     app.scroll_offset = 5;
 
     app.clear_chat();
@@ -167,8 +169,15 @@ fn test_chat_entry_variants() {
     let entries = vec![
         ChatEntry::UserMessage("hello".into()),
         ChatEntry::AssistantMessage("hi".into()),
-        ChatEntry::ToolCall { name: "read_file".into(), args: "{}".into() },
-        ChatEntry::ToolResult { name: "read_file".into(), content: "data".into(), is_error: false },
+        ChatEntry::ToolCall {
+            name: "read_file".into(),
+            args: "{}".into(),
+        },
+        ChatEntry::ToolResult {
+            name: "read_file".into(),
+            content: "data".into(),
+            is_error: false,
+        },
         ChatEntry::SystemInfo("System started".into()),
         ChatEntry::Error("Something went wrong".into()),
     ];

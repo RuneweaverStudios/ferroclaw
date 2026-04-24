@@ -1,0 +1,917 @@
+       Fresh unicode-ident v1.0.24
+       Fresh cfg-if v1.0.4
+       Fresh smallvec v1.15.1
+       Fresh log v0.4.29
+       Fresh proc-macro2 v1.0.106
+       Fresh find-msvc-tools v0.1.9
+       Fresh shlex v1.3.0
+       Fresh pin-project-lite v0.2.17
+       Fresh quote v1.0.45
+       Fresh libc v0.2.183
+       Fresh itoa v1.0.17
+       Fresh version_check v0.9.5
+       Fresh once_cell v1.21.4
+       Fresh bytes v1.11.1
+       Fresh syn v2.0.117
+       Fresh errno v0.3.14
+       Fresh jobserver v0.1.34
+       Fresh scopeguard v1.2.0
+       Fresh pkg-config v0.3.32
+       Fresh mio v1.1.1
+       Fresh parking_lot_core v0.9.12
+       Fresh futures-core v0.3.32
+       Fresh synstructure v0.13.2
+       Fresh cc v1.2.57
+       Fresh signal-hook-registry v1.4.8
+       Fresh lock_api v0.4.14
+       Fresh vcpkg v0.2.15
+       Fresh stable_deref_trait v1.2.1
+       Fresh zerofrom-derive v0.1.6
+       Fresh parking_lot v0.12.5
+       Fresh yoke-derive v0.8.1
+       Fresh bitflags v2.11.0
+       Fresh zerocopy-derive v0.8.42
+       Fresh zerofrom v0.1.6
+       Fresh serde_core v1.0.228
+       Fresh zerocopy v0.8.42
+       Fresh zerovec-derive v0.11.2
+       Fresh serde_derive v1.0.228
+       Fresh tokio-macros v2.6.1
+       Fresh socket2 v0.6.3
+       Fresh yoke v0.8.1
+       Fresh core-foundation-sys v0.8.7
+       Fresh memchr v2.8.0
+       Fresh tokio v1.50.0
+       Fresh serde v1.0.228
+       Fresh displaydoc v0.2.5
+       Fresh zerovec v0.11.5
+       Fresh equivalent v1.0.2
+       Fresh futures-sink v0.3.32
+       Fresh http v1.4.0
+       Fresh tracing-core v0.1.36
+       Fresh writeable v0.6.2
+       Fresh typenum v1.19.0
+       Fresh tinystr v0.8.2
+       Fresh litemap v0.8.1
+       Fresh slab v0.4.12
+       Fresh potential_utf v0.1.4
+       Fresh zerotrie v0.2.3
+       Fresh generic-array v0.14.7
+       Fresh icu_locale_core v2.1.1
+       Fresh strsim v0.11.1
+       Fresh hashbrown v0.16.1
+       Fresh block-buffer v0.10.4
+       Fresh indexmap v2.13.0
+       Fresh crypto-common v0.1.7
+       Fresh icu_provider v2.1.1
+       Fresh icu_collections v2.1.1
+       Fresh tracing-attributes v0.1.31
+       Fresh futures-macro v0.3.32
+       Fresh futures-io v0.3.32
+       Fresh either v1.15.0
+       Fresh percent-encoding v2.3.2
+       Fresh futures-task v0.3.32
+       Fresh tracing v0.1.44
+       Fresh icu_properties_data v2.1.2
+       Fresh futures-util v0.3.32
+       Fresh icu_normalizer_data v2.1.1
+       Fresh digest v0.10.7
+       Fresh httparse v1.10.1
+       Fresh getrandom v0.4.2
+       Fresh http-body v1.0.1
+       Fresh getrandom v0.2.17
+       Fresh heck v0.5.0
+       Fresh autocfg v1.5.0
+       Fresh rustversion v1.0.22
+       Fresh rand_core v0.6.4
+       Fresh icu_normalizer v2.1.1
+       Fresh icu_properties v2.1.2
+       Fresh rustix v1.1.4
+       Fresh zmij v1.0.21
+       Fresh tokio-util v0.7.18
+       Fresh security-framework-sys v2.17.0
+       Fresh core-foundation v0.10.1
+       Fresh cpufeatures v0.2.17
+       Fresh regex-syntax v0.8.10
+       Fresh tower-service v0.3.3
+       Fresh semver v1.0.27
+       Fresh try-lock v0.2.5
+       Fresh atomic-waker v1.1.2
+       Fresh ident_case v1.0.1
+       Fresh fnv v1.0.7
+       Fresh fastrand v2.3.0
+       Fresh utf8parse v0.2.2
+       Fresh rustc_version v0.4.1
+       Fresh anstyle-parse v1.0.0
+       Fresh want v0.3.1
+       Fresh darling_core v0.23.0
+       Fresh h2 v0.4.13
+       Fresh tempfile v3.27.0
+       Fresh regex-automata v0.4.14
+       Fresh system-configuration-sys v0.6.0
+       Fresh security-framework v3.7.0
+       Fresh serde_json v1.0.149
+       Fresh idna_adapter v1.2.1
+       Fresh form_urlencoded v1.2.2
+       Fresh futures-channel v0.3.32
+       Fresh core-foundation v0.9.4
+       Fresh ppv-lite86 v0.2.21
+       Fresh anstyle v1.0.14
+       Fresh colorchoice v1.0.5
+       Fresh is_terminal_polyfill v1.70.2
+       Fresh ryu v1.0.23
+       Fresh zeroize v1.8.2
+       Fresh utf8_iter v1.0.4
+       Fresh anstyle-query v1.1.5
+       Fresh pin-utils v0.1.0
+       Fresh rand_chacha v0.3.1
+       Fresh idna v1.1.0
+       Fresh hyper v1.8.1
+       Fresh anstream v1.0.0
+       Fresh system-configuration v0.7.0
+       Fresh ahash v0.8.12
+       Fresh num-traits v0.2.19
+       Fresh native-tls v0.2.18
+       Fresh signal-hook v0.3.18
+       Fresh darling_macro v0.23.0
+       Fresh crossbeam-utils v0.8.21
+       Fresh libz-sys v1.1.25
+       Fresh openssl-sys v0.9.112
+       Fresh sync_wrapper v1.0.2
+       Fresh thiserror-impl v1.0.69
+       Fresh base64 v0.22.1
+       Fresh allocator-api2 v0.2.21
+       Fresh clap_lex v1.1.0
+       Fresh tower-layer v0.3.3
+       Fresh ipnet v2.12.0
+       Fresh foldhash v0.1.5
+       Fresh clap_builder v4.6.0
+       Fresh tower v0.5.3
+       Fresh thiserror v1.0.69
+       Fresh hashbrown v0.15.5
+       Fresh hyper-util v0.1.20
+       Fresh crossbeam-epoch v0.9.18
+       Fresh darling v0.23.0
+       Fresh libssh2-sys v0.3.1
+       Fresh signal-hook-mio v0.2.5
+       Fresh hashbrown v0.14.5
+       Fresh url v2.5.8
+       Fresh tokio-native-tls v0.3.1
+       Fresh rustix v0.38.44
+       Fresh rand v0.8.5
+       Fresh sha1 v0.10.6
+       Fresh strum_macros v0.26.4
+       Fresh castaway v0.2.4
+       Fresh clap_derive v4.6.0
+       Fresh http-body-util v0.1.3
+       Fresh itertools v0.13.0
+       Fresh toml_datetime v0.6.11
+       Fresh serde_spanned v0.6.9
+       Fresh data-encoding v2.10.0
+       Fresh static_assertions v1.1.0
+       Fresh indoc v2.0.7
+       Fresh utf-8 v0.7.6
+       Fresh signature v2.2.0
+       Fresh winnow v0.7.15
+       Fresh subtle v2.6.1
+       Fresh unicode-width v0.1.14
+       Fresh byteorder v1.5.0
+       Fresh option-ext v0.2.0
+       Fresh toml_write v0.1.2
+       Fresh lazy_static v1.5.0
+       Fresh iri-string v0.7.10
+       Fresh minimal-lexical v0.2.1
+       Fresh unicode-segmentation v1.12.0
+       Fresh dirs-sys v0.5.0
+       Fresh tower-http v0.6.8
+       Fresh toml_edit v0.22.27
+       Fresh unicode-truncate v1.1.0
+       Fresh sharded-slab v0.1.7
+       Fresh nom v7.1.3
+       Fresh curve25519-dalek v4.1.3
+       Fresh tungstenite v0.24.0
+       Fresh ed25519 v2.2.3
+       Fresh hyper-tls v0.6.0
+       Fresh clap v4.6.0
+       Fresh compact_str v0.8.1
+       Fresh instability v0.3.12
+       Fresh strum v0.26.3
+       Fresh crossterm v0.28.1
+       Fresh hashlink v0.9.1
+       Fresh libsqlite3-sys v0.28.0
+       Fresh libgit2-sys v0.17.0+1.8.1
+       Fresh crossbeam-deque v0.8.6
+       Fresh lru v0.12.5
+       Fresh paste v1.0.15
+       Fresh rustls-pki-types v1.14.0
+       Fresh serde_urlencoded v0.7.1
+       Fresh matchers v0.2.0
+       Fresh sha2 v0.10.9
+       Fresh tracing-serde v0.2.0
+       Fresh tracing-log v0.2.0
+       Fresh iana-time-zone v0.1.65
+       Fresh tokio-stream v0.1.18
+       Fresh half v2.7.1
+       Fresh thiserror-impl v2.0.18
+       Fresh encoding_rs v0.8.35
+       Fresh thread_local v1.1.9
+       Fresh fallible-iterator v0.3.0
+       Fresh fallible-streaming-iterator v0.1.9
+       Fresh nu-ansi-term v0.50.3
+       Fresh mime v0.3.17
+       Fresh cassowary v0.3.0
+       Fresh plotters-backend v0.3.7
+       Fresh ciborium-io v0.2.2
+       Fresh unicode-width v0.2.0
+       Fresh reqwest v0.12.28
+       Fresh rusqlite v0.31.0
+       Fresh tracing-subscriber v0.3.23
+       Fresh thiserror v2.0.18
+       Fresh ed25519-dalek v2.2.0
+       Fresh ratatui v0.29.0
+       Fresh ciborium-ll v0.2.2
+       Fresh plotters-svg v0.3.7
+       Fresh chrono v0.4.44
+       Fresh rayon-core v1.13.0
+       Fresh git2 v0.19.0
+       Fresh tokio-tungstenite v0.24.0
+       Fresh eventsource-stream v0.2.3
+       Fresh toml v0.8.23
+       Fresh anyhow v1.0.102
+       Fresh dirs v6.0.0
+       Fresh uuid v1.22.0
+       Fresh itertools v0.10.5
+       Fresh same-file v1.0.6
+       Fresh cast v0.3.0
+       Fresh regex-lite v0.1.9
+       Fresh walkdir v2.5.0
+       Fresh criterion-plot v0.5.0
+       Fresh plotters v0.3.7
+       Fresh rayon v1.11.0
+       Fresh ciborium v0.2.2
+       Fresh tinytemplate v1.2.1
+       Fresh regex v1.12.3
+       Fresh is-terminal v0.4.17
+       Fresh oorandom v11.1.5
+       Fresh anes v0.1.6
+warning: unused import: `elapsed_ms_since`
+  --> src/tui/minimal_tui.rs:27:28
+   |
+27 | use super::glitter_verbs::{elapsed_ms_since, get_glitter_verb};
+   |                            ^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `elapsed_ms_since`
+  --> src/tui/kinetic_tui.rs:27:28
+   |
+27 | use super::glitter_verbs::{elapsed_ms_since, get_glitter_verb};
+   |                            ^^^^^^^^^^^^^^^^
+
+warning: unused import: `backend::CrosstermBackend`
+  --> src/tui/thinking_indicator_demo.rs:20:5
+   |
+20 |     backend::CrosstermBackend,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `std::io`
+  --> src/tui/thinking_indicator_demo.rs:27:5
+   |
+27 | use std::io;
+   |     ^^^^^^^
+
+warning: unused variable: `elapsed_ms`
+   --> src/tui/minimal_tui.rs:616:9
+    |
+616 |     let elapsed_ms = elapsed as u128 * 1000;
+    |         ^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_elapsed_ms`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `app`
+   --> src/tui/kinetic_tui.rs:237:25
+    |
+237 | fn update_kinetic_state(app: &mut App) {
+    |                         ^^^ help: if this is intentional, prefix it with an underscore: `_app`
+
+warning: constant `PROGRESS_BAR_WIDTH` is never used
+  --> src/tui/kinetic_tui.rs:46:7
+   |
+46 | const PROGRESS_BAR_WIDTH: u16 = 20;
+   |       ^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `draw_content` is never used
+   --> src/tui/kinetic_tui.rs:318:4
+    |
+318 | fn draw_content(frame: &mut Frame, app: &App, area: Rect, frame_co...
+    |    ^^^^^^^^^^^^
+
+       Fresh tokio-test v0.4.5
+warning: `ferroclaw` (lib) generated 8 warnings (run `cargo fix --lib -p ferroclaw` to apply 6 suggestions)
+       Fresh criterion v0.5.1
+warning: unused import: `compress_schema`
+ --> examples/compression_benchmark.rs:6:35
+  |
+6 | use ferroclaw::mcp::compression::{compress_schema, compress_tools};
+  |                                   ^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `CompressionConfig`
+ --> examples/compression_demo.rs:6:68
+  |
+6 | ...schema, SchemaAnalyzer, CompressionConfig};
+  |                            ^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: `ferroclaw` (example "compression_benchmark") generated 1 warning (run `cargo fix --example "compression_benchmark" -p ferroclaw` to apply 1 suggestion)
+warning: `ferroclaw` (example "compression_demo") generated 1 warning (run `cargo fix --example "compression_demo" -p ferroclaw` to apply 1 suggestion)
+warning: unused import: `crate::types::ToolCall`
+   --> src/hooks/mod.rs:336:9
+    |
+336 |     use crate::types::ToolCall;
+    |         ^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `elapsed_ms_since`
+  --> src/tui/minimal_tui.rs:27:28
+   |
+27 | use super::glitter_verbs::{elapsed_ms_since, get_glitter_verb};
+   |                            ^^^^^^^^^^^^^^^^
+
+warning: unused variable: `step3`
+    --> src/modes/plan.rs:1033:13
+     |
+1033 |         let step3 = plan.create_step("Step 3", "Third", None, vec...
+     |             ^^^^^ help: if this is intentional, prefix it with an underscore: `_step3`
+     |
+     = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `task1`
+   --> src/tasks/store.rs:688:13
+    |
+688 |         let task1 = store
+    |             ^^^^^ help: if this is intentional, prefix it with an underscore: `_task1`
+
+warning: unused variable: `elapsed_ms`
+   --> src/tui/minimal_tui.rs:616:9
+    |
+616 |     let elapsed_ms = elapsed as u128 * 1000;
+    |         ^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_elapsed_ms`
+
+       Fresh ferroclaw v0.1.0 (/Users/ghost/Desktop/ferroclaw)
+warning: `ferroclaw` (lib test) generated 11 warnings (6 duplicates) (run `cargo fix --lib -p ferroclaw --tests` to apply 5 suggestions)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.10s
+     Running `/Users/ghost/Desktop/ferroclaw/target/debug/deps/ferroclaw-4e129aebaac4ca20`
+
+running 303 tests
+test agent::context::tests::test_remaining_budget ... ok
+test agent::orchestration::tests::test_agent_execution ... ok
+test agent::orchestration::tests::test_agent_message ... ok
+test agent::orchestration::tests::test_message_bus_registration ... ok
+test agent::context::tests::test_estimate_total ... ok
+test agent::orchestration::tests::test_message_bus_broadcast ... ok
+test agent::orchestration::tests::test_message_bus_message_count ... ok
+test agent::orchestration_test::test_agent_execution_cloning ... ok
+test agent::orchestration::tests::test_message_bus_send_receive ... ok
+test agent::orchestration_test::test_agent_execution_creation ... ok
+test agent::orchestration_test::test_agent_message_bus_broadcast ... ok
+test agent::orchestration::tests::test_message_bus_has_messages ... ok
+test agent::orchestration_test::test_agent_message_bus_has_messages ... ok
+test agent::orchestration_test::test_agent_message_bus_message_count ... ok
+test agent::orchestration::tests::test_subagent_config_builder ... ok
+test agent::orchestration_test::test_agent_message_bus_multiple_messages ... ok
+test agent::orchestration_test::test_agent_message_bus_single_message ... ok
+test agent::orchestration_test::test_agent_message_creation ... ok
+test agent::orchestration_test::test_agent_message_bus_send_to_unregistered_agent ... ok
+test agent::orchestration::tests::test_message_bus_error_on_unregistered ... ok
+test agent::context::tests::test_prune_to_fit ... ok
+test agent::orchestration_test::test_message_bus_mixed_direct_and_broadcast ... ok
+test agent::orchestration_test::test_subagent_config_builder_pattern ... ok
+test agent::orchestration_test::test_message_bus_concurrent_access_pattern ... ok
+test agent::orchestration_test::test_subagent_config_serialization ... ok
+test agent::r#loop::tests::test_agent_event_variants ... ok
+test agent::orchestration_test::test_subagent_config_defaults ... ok
+test channels::discord::tests::test_chunk_short_message ... ok
+test channels::email::tests::test_allowlist ... ok
+test channels::email::tests::test_empty_allowlist ... ok
+test channels::router::tests::test_router_default_config ... ok
+test channels::router::tests::test_router_status ... ok
+test channels::discord::tests::test_chunk_long_message ... ok
+test channels::slack::tests::test_allowlist_enforced ... ok
+test channels::signal::tests::test_allowlist ... ok
+test channels::homeassistant::tests::test_channel_name ... ok
+test channels::whatsapp::tests::test_allowlist ... ok
+test channels::signal::tests::test_empty_allowlist ... ok
+test channels::discord::tests::test_allowlist_empty_allows_all ... ok
+test channels::slack::tests::test_allowlist_empty_allows_all ... ok
+test channels::discord::tests::test_allowlist_enforced ... ok
+test channels::whatsapp::tests::test_webhook_verify ... ok
+test config::tests::test_default_config ... ok
+test config::tests::test_resolve_env_var ... ok
+test gateway::tests::test_gateway_allows_0000_with_token ... ok
+test gateway::tests::test_gateway_allows_safe_bind ... ok
+test gateway::tests::test_gateway_blocks_unsafe_bind ... ok
+test gateway::tests::test_gateway_from_default_config ... ok
+test hooks::builtin::tests::test_security_hook ... ok
+test hooks::builtin::tests::test_audit_hook ... ok
+test hooks::builtin::tests::test_metrics_hook ... ok
+test hooks::builtin::tests::test_rate_limit_hook ... ok
+test hooks::hooks_test::test_hook_context_timestamp ... ok
+test hooks::hooks_test::test_hook_context_with_metadata ... ok
+test hooks::hooks_test::test_hook_manager_default ... ok
+test hooks::hooks_test::test_hook_manager_clear ... ok
+test hooks::hooks_test::test_hook_result_error_message ... ok
+test hooks::hooks_test::test_hook_result_should_continue ... ok
+test hooks::builtin::tests::test_logging_hook ... ok
+test hooks::hooks_test::test_config_change_hook ... ok
+test hooks::hooks_test::test_hook_halts_subsequent_hooks ... ok
+test hooks::hooks_test::test_hook_registration_and_execution_order ... ok
+test hooks::hooks_test::test_hook_execution_isolation ... ok
+test hooks::hooks_test::test_hook_manager_thread_safety ... ok
+test hooks::hooks_test::test_invalid_hook_result_in_permission_check ... ok
+test hooks::hooks_test::test_invalid_hook_result_in_pre_tool ... ok
+test hooks::hooks_test::test_invalid_hook_result_in_post_tool ... ok
+test hooks::hooks_test::test_multiple_permission_hooks ... ok
+test hooks::hooks_test::test_permission_check_hook_allow ... ok
+test hooks::hooks_test::test_permission_check_hook_continue ... ok
+test hooks::hooks_test::test_multiple_hooks_execution ... ok
+test hooks::hooks_test::test_permission_check_hook_deny ... ok
+test hooks::hooks_test::test_post_tool_hook_continue ... ok
+test hooks::hooks_test::test_post_tool_hook_halt ... ok
+test hooks::hooks_test::test_post_tool_hook_modify_result ... ok
+test hooks::hooks_test::test_pre_tool_hook_continue ... ok
+test hooks::hooks_test::test_pre_tool_hook_halt ... ok
+test hooks::hooks_test::test_pre_tool_hook_modify_arguments ... ok
+test hooks::hooks_test::test_session_end_hook ... ok
+test hooks::tests::test_hook_context_new ... ok
+test hooks::hooks_test::test_session_start_hook ... ok
+test hooks::tests::test_hook_manager_clear ... ok
+test hooks::tests::test_hook_context_with_metadata ... ok
+test hooks::tests::test_hook_manager_new ... ok
+test hooks::tests::test_hook_manager_register ... ok
+test hooks::tests::test_hook_result_continue ... ok
+test hooks::tests::test_hook_result_halt ... ok
+test mcp::client::tests::test_client_server_names ... ok
+test mcp::compression::tests::test_compress_nested_objects ... ok
+test mcp::compression::tests::test_compress_preserves_required ... ok
+test mcp::compression::tests::test_compress_real_world_schema ... ok
+test mcp::compression::tests::test_compress_schema_basic ... ok
+test mcp::compression::tests::test_collapse_oneof ... ok
+test mcp::compression::tests::test_schema_analyzer ... ok
+test mcp::compression::tests::test_truncate_description ... ok
+test mcp::cache::tests::test_config_fingerprint ... ok
+test mcp::compression::tests::test_compress_meets_target ... ok
+test mcp::compression::tests::test_compress_tools ... ok
+test mcp::diet::tests::test_categorize_tools ... ok
+test mcp::diet::tests::test_compact_signature ... ok
+test mcp::diet::tests::test_format_csv ... ok
+test mcp::diet::tests::test_truncate ... ok
+test mcp::diet::tests::test_skill_summary_render ... ok
+test mcp::registry::tests::test_build_diet_context ... ok
+test mcp::diet::tests::test_format_minified ... ok
+test mcp::cache::tests::test_cache_invalidate ... ok
+test mcp::diet::tests::test_auto_redirect_large_response ... ok
+test mcp::cache::tests::test_cache_roundtrip ... ok
+test memory::memdir::tests::test_load_memory_prompt_with_content ... ok
+test memory::memdir::tests::test_load_memory_prompt_empty ... ok
+test config::tests::test_parse_example_config ... ok
+test memory::memdir::tests::test_load_memory_prompt_with_truncation ... ok
+test memory::memdir::tests::test_truncate_both_limits ... ok
+test memory::memdir::tests::test_truncate_byte_limit ... ok
+test memory::memdir::tests::test_truncate_line_limit ... ok
+test memory::memdir::tests::test_truncate_within_limits ... ok
+test memory::memdir::tests::test_list_topic_files_excludes_entrypoint ... ok
+test memory::memdir::tests::test_topic_file_operations ... ok
+test memory::memdir::tests::test_write_and_read_entrypoint ... ok
+test modes::plan::tests::test_phase_sequence ... ok
+test mcp::cache::tests::test_cache_expired ... ok
+test modes::plan::tests::test_phase_transitions ... ok
+test modes::plan::tests::test_create_step ... ok
+test modes::plan::tests::test_dependent_step_unblocks ... ok
+test memory::store::tests::test_conversation_persistence ... ok
+test modes::plan::tests::test_step_with_approval ... ok
+test modes::plan::tests::test_step_status_update ... ok
+test modes::plan::tests::test_step_with_dependencies ... ok
+test memory::store::tests::test_memory_fts_search ... ok
+test memory::store::tests::test_memory_crud ... ok
+test modes::plan::tests::test_status_summary ... ok
+test providers::anthropic::tests::test_format_tool_result ... ok
+test modes::plan::tests::test_wave_calculation ... ok
+test providers::anthropic::tests::test_build_request_body ... ok
+test providers::anthropic::tests::test_format_user_message ... ok
+test providers::openrouter::tests::test_is_openrouter_model ... ok
+test providers::streaming::tests::test_estimate_tokens ... ok
+test providers::anthropic::tests::test_parse_response_text_only ... ok
+test providers::anthropic::tests::test_parse_response_with_tool_use ... ok
+test providers::openai::tests::test_parse_openai_response ... ok
+test providers::openai::tests::test_parse_openai_tool_call ... ok
+test providers::streaming::tests::test_parse_sse_lines ... ok
+test providers::openrouter::tests::test_build_request_body ... ok
+test providers::streaming::tests::test_stream_accumulator ... ok
+test providers::openrouter::tests::test_parse_openrouter_text_response ... ok
+test providers::zai::tests::test_is_zai_model ... ok
+test security::audit::tests::test_disabled_log ... ok
+test providers::openrouter::tests::test_parse_openrouter_tool_call ... ok
+test security::audit::tests::test_hash_content ... ok
+test security::capabilities::tests::test_capabilities_from_config ... ok
+test providers::zai::tests::test_format_tool_result_message ... ok
+test security::capabilities::tests::test_check_with_message_ok ... ok
+test security::capabilities::tests::test_format_capabilities ... ok
+test skills::agentskills::tests::test_category_parsing ... ok
+test providers::zai::tests::test_parse_zai_text_response ... ok
+test security::capabilities::tests::test_check_with_message_denied ... ok
+test providers::zai::tests::test_build_request_with_tools ... ok
+test providers::zai::tests::test_parse_zai_tool_call_response ... ok
+test security::audit::tests::test_audit_log_tamper_detection ... ok
+test security::audit::tests::test_audit_log_write_and_verify ... ok
+test skills::bundled::tests::test_all_skills_have_capabilities ... ok
+test skills::bundled::tests::test_all_skills_have_description ... ok
+test skills::bundled::tests::test_unique_names ... ok
+test skills::bundled::tests::test_skill_count ... ok
+test skills::bundled::tests::test_category_coverage ... ok
+test skills::bundled::tests::test_skills_per_category ... ok
+test skills::agentskills::tests::test_roundtrip_conversion ... ok
+test skills::executor::tests::test_interpolate_missing_required ... ok
+test skills::executor::tests::test_interpolate_optional_present ... ok
+test skills::executor::tests::test_interpolate_optional_missing ... ok
+test skills::executor::tests::test_interpolate_multiple_params ... ok
+test skills::executor::tests::test_interpolate_required ... ok
+test skills::loader::tests::test_load_custom_nonexistent_dir ... ok
+test skills::manifest::tests::test_bash_skill_builder ... ok
+test skills::manifest::tests::test_skill_category_count ... ok
+test skills::loader::tests::test_bundled_skills_categories ... ok
+test skills::loader::tests::test_bundled_skills_count ... ok
+test tasks::store::tests::test_list_with_filters ... ok
+test skills::manifest::tests::test_skill_manifest_serialization ... ok
+test tasks::store::tests::test_complex_cycle_detection ... ok
+test skills::loader::tests::test_skill_registration ... ok
+test skills::agentskills::tests::test_export_import_all ... ok
+test tasks::store::tests::test_cycle_detection ... ok
+test tasks::store::tests::test_nonexistent_dependency ... ok
+test tasks::store::tests::test_task_crud ... ok
+test tasks::tasks_test::test_create_with_invalid_dependencies ... ok
+test tasks::tasks_test::test_create_with_dependencies ... ok
+test tasks::store::tests::test_update_with_metadata ... ok
+test tasks::tasks_test::test_active_form_optional ... ok
+test tasks::store::tests::test_task_dependencies ... ok
+test tasks::tasks_test::test_delete_task ... ok
+test tasks::tasks_test::test_cycle_detection_simple ... ok
+test tasks::tasks_test::test_cycle_detection_complex ... ok
+test tasks::tasks_test::test_status_updates ... ok
+test tasks::tasks_test::test_nonexistent_task_operations ... ok
+test telegram::tests::test_split_message_at_newline ... ok
+test telegram::tests::test_split_message_long ... ok
+test telegram::tests::test_split_message_short ... ok
+test tasks::tasks_test::test_task_creation_and_retrieval ... ok
+test tasks::tasks_test::test_metadata_operations ... ok
+test tasks::tasks_test::test_dependency_tracking ... ok
+test telegram::tests::test_strip_bot_mention ... ok
+test tasks::tasks_test::test_listing_with_filters ... ok
+test telegram::tests::test_api_url ... ok
+test tasks::tasks_test::test_update_fields ... ok
+test tool::tests::test_infer_capabilities ... ok
+test tool::tests::test_capability_set_check ... ok
+test tool::tests::test_registry_basic ... ok
+test tools::agent::tests::test_agent_definition_builder ... ok
+test telegram::tests::test_telegram_empty_allowlist_allows_all ... ok
+test tools::agent::tests::test_agent_prompt_fallback ... ok
+test telegram::tests::test_telegram_allowlist ... ok
+test tools::agent::tests::test_agent_memory ... ok
+test tools::agent::tests::test_agent_registry ... ok
+test tools::agent::tests::test_agent_missing_task ... ok
+test tools::agent::tests::test_agent_spawn_default ... ok
+test tools::agent::tests::test_agent_resumption ... ok
+test tools::agent::tests::test_agent_invalid_type ... ok
+test tools::agent::tests::test_agent_tool_meta ... ok
+test tools::agent::tests::test_agent_memory_isolation ... ok
+test tools::agent::tests::test_builtin_agent_types ... ok
+test tools::agent::tests::test_default_prompts ... ok
+test tools::analyze_code::tests::test_analyze_python_file ... ok
+test tools::analyze_code::tests::test_analyze_rust_file ... ok
+test tools::collaboration::tests::test_notify_user_meta ... ok
+test tools::collaboration::tests::test_comment_meta ... ok
+test tools::build::tests::test_detect_unknown_project ... ok
+test tools::collaboration::tests::test_request_approval_meta ... ok
+test tools::collaboration::tests::test_share_context_meta ... ok
+test tools::commit::tests::test_commit_format_validation ... ok
+test tools::build::tests::test_detect_rust_project ... ok
+test tools::build::tests::test_detect_python_project ... ok
+test tools::commit::tests::test_commit_type_inference ... ok
+test tools::commit::tests::test_description_extraction ... ok
+test tools::evaluate_result::tests::test_evaluate_result_partial ... ok
+test tools::evaluate_result::tests::test_evaluate_result_success ... ok
+test tools::evaluate_result::tests::test_evaluate_result_with_metrics ... ok
+test tools::file_edit::tests::test_missing_required_arguments ... ok
+test tools::file_edit::tests::test_file_not_found ... ok
+test tools::file_edit::tests::test_multiple_matches_should_error ... ok
+test tools::file_edit::tests::test_multi_line_replacement ... ok
+test tools::filter::tests::test_filtered_registry_all_meta ... ok
+test tools::filter::tests::test_filtered_registry_all_tools_allowed ... ok
+test tools::filter::tests::test_filtered_registry_allowed_tools ... ok
+test tools::file_edit::tests::test_simple_single_line_replacement ... ok
+test tools::filter::tests::test_filtered_registry_case_sensitivity ... ok
+test tools::filter::tests::test_filtered_registry_empty_allowed_list ... ok
+test tools::file_edit::tests::test_string_not_found ... ok
+test tools::filter::tests::test_filtered_registry_get_meta ... ok
+test tools::filter::tests::test_filtered_registry_restricted_access ... ok
+test tools::filter::tests::test_filtered_registry_execute_denied ... ok
+test tools::filter::tests::test_filtered_registry_execute_allowed ... ok
+test tools::filter::tests::test_filtered_registry_tool_count ... ok
+test tools::find_bugs::tests::test_find_javascript_bugs ... ok
+test tools::find_bugs::tests::test_find_python_bugs ... ok
+test tools::find_bugs::tests::test_find_rust_bugs ... ok
+test tools::glob::tests::test_cache_key ... ok
+test tools::glob::tests::test_glob_cache ... ok
+test tools::glob::tests::test_wildcard_match ... ok
+test tools::build::tests::test_detect_nodejs_project ... ok
+test tools::grep::tests::test_case_insensitive ... ok
+test tools::grep::tests::test_count_mode ... ok
+test tools::grep::tests::test_file_not_found ... ok
+test tools::grep::tests::test_files_with_matches_mode ... ok
+test tools::grep::tests::test_glob_filtering ... ok
+test tools::grep::tests::test_glob_matches ... ok
+test tools::generate_tests::tests::test_generate_python_tests ... ok
+test tools::generate_tests::tests::test_generate_rust_tests ... ok
+test tools::grep::tests::test_missing_pattern_argument ... ok
+test tools::grep::tests::test_output_mode_from_str ... ok
+test tools::grep::tests::test_invalid_regex ... ok
+test tools::monitoring::tests::test_log_store ... ok
+test tools::monitoring::tests::test_trace_store ... ok
+test tools::review_code::tests::test_review_python ... ok
+test tools::grep::tests::test_no_matches ... ok
+test tools::grep::tests::test_basic_pattern_matching ... ok
+test tools::review_code::tests::test_review_rust ... ok
+test tui::app::tests::test_active_tools_management ... ok
+test tui::app::tests::test_clear_chat ... ok
+test tui::app::tests::test_clear_chat_resets_error_state ... ok
+test tui::app::tests::test_input_backspace ... ok
+test tools::refactor_code::tests::test_refactor_rust_rename ... ok
+test tui::app::tests::test_input_char_and_take ... ok
+test tui::app::tests::test_input_newline ... ok
+test tui::app::tests::test_scroll ... ok
+test tui::app::tests::test_selected_task ... ok
+test tui::app::tests::test_task_management ... ok
+test tui::app::tests::test_thinking_indicator_states ... ok
+test tui::app::tests::test_update_glitter_verb ... ok
+test tui::thinking_indicator_demo::tests::test_bold_states ... ok
+test tui::thinking_indicator_demo::tests::test_create_indicator_span ... ok
+test tui::thinking_indicator_demo::tests::test_display_state_transitions ... ok
+test tui::thinking_indicator_demo::tests::test_indicator_colors ... ok
+test tui::thinking_indicator_demo::tests::test_indicator_symbols ... ok
+test tui::thinking_indicator_demo::tests::test_state_transitions ... ok
+test tui::thinking_indicator_demo::tests::test_state_verbs ... ok
+test websocket::tests::test_broadcaster ... ok
+test websocket::tests::test_ws_event_serialization ... ok
+test websocket::tests::test_ws_server_listen_addr ... ok
+test tools::execute_code::tests::test_execute_bash ... ok
+test tools::execute_code::tests::test_execute_python ... ok
+test tools::build::tests::test_build_rust ... ok
+test tasks::tasks_test::test_list_ordering ... ok
+
+test result: ok. 303 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.42s
+
+     Running `/Users/ghost/Desktop/ferroclaw/target/debug/deps/ferroclaw-2c492f3bc34de41e`
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running `/Users/ghost/Desktop/ferroclaw/target/debug/deps/integration_agent-3d702d36510bbc37`
+
+running 14 tests
+test test_agent_event_token_usage ... ok
+test test_context_manager_remaining_saturates_at_zero ... ok
+test test_context_manager_usage_fraction_zero_budget ... ok
+test test_agent_event_done ... ok
+test test_agent_event_tool_call_start ... ok
+test test_agent_event_error ... ok
+test test_agent_event_tool_result ... ok
+test test_context_manager_record_multiple_usages ... ok
+test test_estimate_total_empty ... ok
+test test_estimate_total_single_message ... ok
+test test_prune_does_not_remove_all_messages ... ok
+test test_prune_inserts_marker ... ok
+test test_would_exceed_allows_within_budget ... ok
+test test_would_exceed_with_large_message ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running `/Users/ghost/Desktop/ferroclaw/target/debug/deps/integration_all_features-139f9164b44d0ef8`
+
+running 4 tests
+test test_plan_mode_phase_progression ... ok
+test test_task_store_and_plan_mode_integration ... ok
+test test_task_dependency_workflow ... ok
+test test_complete_workflow_simulation ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running `/Users/ghost/Desktop/ferroclaw/target/debug/deps/integration_channels-59fc6593e3adf385`
+
+running 8 tests
+test test_incoming_message_construction ... ok
+test test_outgoing_message_error_flag ... ok
+test test_discord_chunk_exact_boundary ... ok
+test test_discord_chunk_splits_at_newline ... ok
+test test_router_get_nonexistent_channel ... ok
+test test_router_no_channels_by_default ... ok
+test test_router_status_empty ... ok
+test test_router_send_to_unconfigured_channel_errors ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running `/Users/ghost/Desktop/ferroclaw/target/debug/deps/integration_config-4eaab435d33041e9`
+
+running 13 tests
+test test_gateway_security_defaults ... ok
+test test_default_capabilities_are_safe ... ok
+test test_gateway_allows_open_bind_with_token ... ok
+test test_gateway_blocks_open_bind_without_token ... ok
+test test_default_config_is_valid ... ok
+test test_provider_routing_unknown_model_falls_through ... ok
+test test_provider_routing_anthropic ... ok
+test test_provider_routing_zai_requires_config ... ok
+test test_provider_routing_openrouter_requires_config ... ok
+test test_openrouter_config_defaults ... ok
+test test_zai_config_defaults ... ok
+test test_config_with_all_providers ... ok
+test test_example_config_roundtrip ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running `/Users/ghost/Desktop/ferroclaw/target/debug/deps/integration_diet-7945f6354b97d4ad`
+
+running 11 tests
+test test_auto_redirect_preserves_small_responses ... ok
+test test_format_response_minified_strips_nulls ... ok
+test test_compact_signature_marks_optional_params ... ok
+test test_compact_signatures_are_readable ... ok
+test test_format_response_summary_truncates ... ok
+test test_format_response_csv_tabular ... ok
+test test_auto_redirect_large_response ... ok
+test test_skill_summary_structure ... ok
+test test_render_multiple_summaries ... ok
+test test_diet_token_savings_estimate ... ok
+test test_compression_ratio_exceeds_90_percent ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running `/Users/ghost/Desktop/ferroclaw/target/debug/deps/integration_memory-e6a8b46c6166bec5`
+
+running 12 tests
+test test_conversation_isolation_between_sessions ... ok
+test test_memory_handles_large_content ... ok
+test test_conversation_persistence ... ok
+test test_memory_handles_unicode ... ok
+test test_memory_insert_and_retrieve ... ok
+test test_memory_forget ... ok
+test test_memory_fts_search_relevance ... ok
+test test_memory_search_returns_empty_for_no_match ... ok
+test test_memory_upsert_updates_content ... ok
+test test_memory_list_all_ordered_by_update ... ok
+test test_memory_search_limit ... ok
+test test_memory_concurrent_safe ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running `/Users/ghost/Desktop/ferroclaw/target/debug/deps/integration_providers-8c2243a3fc4282e7`
+
+running 13 tests
+test test_openrouter_model_detection ... ok
+test test_token_usage_zero ... ok
+test test_tool_definition_compact_signature_no_params ... ok
+test test_tool_definition_required_params_empty ... ok
+test test_tool_result_message_fields ... ok
+test test_zai_model_detection ... ok
+test test_assistant_with_tool_calls_empty_text ... ok
+test test_system_message_text ... ok
+test test_routing_fallback_no_provider ... ok
+test test_routing_priority_anthropic_third ... ok
+test test_routing_priority_openrouter_second ... ok
+test test_routing_priority_zai_first ... ok
+test test_token_usage_total ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running `/Users/ghost/Desktop/ferroclaw/target/debug/deps/integration_security-46cf4003a63061cc`
+
+running 11 tests
+test test_capability_all_set ... ok
+test test_check_with_message_produces_actionable_error ... ok
+test test_audit_resumes_from_existing_file ... ok
+test test_audit_detects_deletion ... ok
+test test_audit_detects_insertion ... ok
+test test_execute_nonexistent_tool ... ok
+test test_memory_tools_require_memory_caps ... ok
+test test_web_fetch_requires_net_outbound ... ok
+test test_builtin_tools_respect_capabilities ... ok
+test test_audit_chain_integrity_with_100_entries ... ok
+test test_bash_requires_process_exec ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+     Running `/Users/ghost/Desktop/ferroclaw/target/debug/deps/integration_skill_execution-dc696aaa6f8a3257`
+
+running 97 tests
+test test_every_bundled_skill_is_bash_type ... ok
+test test_all_skills_have_process_exec_capability ... ok
+test test_bundled_skill_count_is_at_least_87 ... ok
+test test_every_skill_fails_without_required_params ... ok
+test test_all_87_skills_interpolation_coverage ... ok
+test test_every_skill_interpolates_with_all_params ... ok
+test test_exec_count_lines ... ok
+test test_exec_disk_usage ... ok
+test test_exec_check_permissions ... ok
+test test_exec_changelog_entry ... ok
+test test_exec_encode_base64 ... ok
+test test_exec_dns_lookup ... ok
+test test_exec_env_var ... ok
+test test_exec_env_check ... ok
+test test_exec_find_files ... ok
+test test_exec_file_info ... ok
+test test_exec_file_checksum ... ok
+test test_exec_find_references ... ok
+test test_exec_generate_password ... ok
+test test_exec_git_branch ... ok
+test test_exec_find_definition ... ok
+test test_exec_git_log ... ok
+test test_exec_git_diff ... ok
+test test_exec_git_status ... ok
+test test_exec_grep_code ... ok
+test test_exec_json_query ... ok
+test test_exec_local_ip ... ok
+test test_exec_readme_check ... ok
+test test_exec_regex_match ... ok
+test test_exec_scan_secrets ... ok
+test test_exec_hash_file ... ok
+test test_exec_tail_file ... ok
+test test_exec_system_info ... ok
+test test_exec_tree_view ... ok
+test test_interpolate_archive_create ... ok
+test test_interpolate_aws_s3_ls ... ok
+test test_exec_uptime_info ... ok
+test test_interpolate_copy_file ... ok
+test test_interpolate_check_url ... ok
+test test_interpolate_csv_to_sql ... ok
+test test_interpolate_db_schema ... ok
+test test_interpolate_curl_request ... ok
+test test_interpolate_docker_build ... ok
+test test_interpolate_db_tables ... ok
+test test_interpolate_docker_compose_up ... ok
+test test_interpolate_docker_exec ... ok
+test test_interpolate_docker_images ... ok
+test test_exec_which_command ... ok
+test test_interpolate_download_file ... ok
+test test_interpolate_docker_logs ... ok
+test test_interpolate_docker_ps ... ok
+test test_interpolate_gcloud_info ... ok
+test test_interpolate_git_blame ... ok
+test test_interpolate_git_checkout ... ok
+test test_interpolate_git_stash ... ok
+test test_interpolate_git_commit ... ok
+test test_interpolate_http_get ... ok
+test test_interpolate_http_post ... ok
+test test_interpolate_image_info ... ok
+test test_interpolate_image_resize ... ok
+test test_interpolate_kubectl_apply ... ok
+test test_interpolate_json_file_query ... ok
+test test_exec_word_count ... ok
+test test_interpolate_kubectl_describe ... ok
+test test_interpolate_kubectl_get ... ok
+test test_interpolate_kubectl_logs ... ok
+test test_interpolate_kubectl_port_forward ... ok
+test test_interpolate_license_check ... ok
+test test_interpolate_lint_check ... ok
+test test_interpolate_npm_list ... ok
+test test_interpolate_move_file ... ok
+test test_interpolate_markdown_toc ... ok
+test test_interpolate_pg_query ... ok
+test test_interpolate_pdf_text ... ok
+test test_interpolate_outdated_check ... ok
+test test_interpolate_ping_host ... ok
+test test_interpolate_pip_list ... ok
+test test_interpolate_port_check ... ok
+test test_interpolate_run_benchmarks ... ok
+test test_interpolate_run_tests ... ok
+test test_interpolate_ssh_command ... ok
+test test_interpolate_sqlite_query ... ok
+test test_interpolate_test_single ... ok
+test test_interpolate_terraform_plan ... ok
+test test_interpolate_test_watch ... ok
+test test_interpolate_test_coverage ... ok
+test test_interpolate_text_replace ... ok
+test test_interpolate_with_empty_optional_collapses_spaces ... ok
+test test_interpolate_with_paths_containing_spaces ... ok
+test test_interpolate_url_encode ... ok
+test test_interpolate_yaml_to_json ... ok
+test test_skill_categories_summary ... ok
+test test_interpolate_with_special_characters ... ok
+test test_exec_process_list ... ok
+test test_exec_cargo_deps ... ok
+test test_exec_doc_links_check ... ok
+test test_exec_code_complexity has been running for over 60 seconds

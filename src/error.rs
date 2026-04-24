@@ -53,6 +53,9 @@ pub enum FerroError {
 
     #[error("Channel closed")]
     ChannelClosed,
+
+    #[error("Hook '{hook}' failed: {reason}")]
+    HookFailed { hook: &'static str, reason: String },
 }
 
 pub type Result<T> = std::result::Result<T, FerroError>;

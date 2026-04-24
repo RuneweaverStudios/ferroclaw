@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ferroclaw: Terminal Evolution Preview</title>
+<style>
+  @import url('https://fonts.fontshare.com/f/ibm-plex-mono.css');
+
+  :root {
+    --color-bg: #0a0a0a;
+    --color-text: #e0e0e0;
+    --color-accent: #06ffff;
+    --color-success: #00ff00;
+    --color-warning: #ffff00;
+    --font-mono: 'IBM Plex Mono', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--font-mono);
+    background: var(--color-bg);
+    color: var(--color-text);
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  .slide {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    padding: clamp(30px, 5vw, 60px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .preview-label {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 11px;
+    color: #666;
+    opacity: 0.6;
+  }
+
+  .terminal-header {
+    display: flex;
+    gap: 8px;
+    margin-bottom: clamp(30px, 5vw, 60px);
+  }
+
+  .dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+  }
+
+  .dot.red { background: #ff5f56; }
+  .dot.yellow { background: #ffbd2e; }
+  .dot.green { background: #27c93f; }
+
+  h1 {
+    font-size: clamp(32px, 5vw, 64px);
+    font-weight: 400;
+    margin-bottom: clamp(20px, 3vw, 40px);
+    color: var(--color-accent);
+  }
+
+  .prompt {
+    color: var(--color-success);
+    margin-right: 12px;
+  }
+
+  .code-block {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: clamp(20px, 3vw, 40px);
+    margin-top: clamp(30px, 5vw, 60px);
+    font-size: clamp(12px, 1.3vw, 16px);
+    line-height: 1.8;
+  }
+
+  .code-block .comment {
+    color: #666;
+  }
+
+  .code-block .keyword {
+    color: var(--color-accent);
+  }
+
+  .code-block .string {
+    color: var(--color-success);
+  }
+
+  .status-line {
+    margin-top: clamp(30px, 5vw, 60px);
+    font-size: clamp(11px, 1.2vw, 14px);
+    color: #666;
+  }
+
+  .status-line span {
+    color: var(--color-accent);
+  }
+</style>
+</head>
+<body>
+  <section class="slide">
+    <span class="preview-label">PREVIEW 2/3 — TERMINAL EVOLUTION</span>
+
+    <div class="terminal-header">
+      <div class="dot red"></div>
+      <div class="dot yellow"></div>
+      <div class="dot green"></div>
+    </div>
+
+    <h1>./ferroclaw run</h1>
+
+    <div class="code-block">
+      <span class="comment">// Kinetic TUI with glitter verbs</span><br>
+      <span class="keyword">fn</span> draw_glitter_verb(frame: &<span class="keyword">mut</span> Frame) {<br>
+      &nbsp;&nbsp;<span class="keyword">let</span> verb = get_glitter_verb(<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;is_running,<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;iteration,<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;run_started_at<br>
+      &nbsp;&nbsp;);<br>
+      &nbsp;&nbsp;render(verb); <span class="comment">// "Contemplating…"</span><br>
+      }
+    </div>
+
+    <div class="status-line">
+      <span>●</span> Thinking… claude-3-sonnet·3 45% ████████░░ 8.2/s
+    </div>
+  </section>
+</body>
+</html>

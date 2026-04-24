@@ -2,7 +2,7 @@
 
 use crate::config::data_dir;
 use crate::error::{FerroError, Result};
-use rusqlite::{params, Connection};
+use rusqlite::{Connection, params};
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
@@ -207,12 +207,7 @@ impl MemoryStore {
     }
 
     /// Save a conversation message.
-    pub fn save_conversation(
-        &self,
-        session_id: &str,
-        role: &str,
-        content: &str,
-    ) -> Result<()> {
+    pub fn save_conversation(&self, session_id: &str, role: &str, content: &str) -> Result<()> {
         self.conn
             .execute(
                 "INSERT INTO conversations (session_id, role, content) VALUES (?1, ?2, ?3)",
@@ -305,9 +300,7 @@ mod tests {
     fn test_conversation_persistence() {
         let store = MemoryStore::in_memory().unwrap();
 
-        store
-            .save_conversation("sess_1", "user", "Hello")
-            .unwrap();
+        store.save_conversation("sess_1", "user", "Hello").unwrap();
         store
             .save_conversation("sess_1", "assistant", "Hi there!")
             .unwrap();

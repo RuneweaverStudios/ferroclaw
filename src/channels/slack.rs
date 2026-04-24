@@ -70,8 +70,7 @@ impl SlackChannel {
             .await
             .map_err(|e| FerroError::Channel(format!("Slack response parse error: {e}")))?;
 
-        if !status.is_success() || response_body.get("ok") != Some(&serde_json::Value::Bool(true))
-        {
+        if !status.is_success() || response_body.get("ok") != Some(&serde_json::Value::Bool(true)) {
             let error = response_body
                 .get("error")
                 .and_then(|e| e.as_str())
@@ -83,12 +82,7 @@ impl SlackChannel {
     }
 
     /// React to a message with an emoji.
-    pub async fn add_reaction(
-        &self,
-        channel_id: &str,
-        timestamp: &str,
-        emoji: &str,
-    ) -> Result<()> {
+    pub async fn add_reaction(&self, channel_id: &str, timestamp: &str, emoji: &str) -> Result<()> {
         let body = serde_json::json!({
             "channel": channel_id,
             "timestamp": timestamp,

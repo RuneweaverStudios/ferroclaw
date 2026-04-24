@@ -5,7 +5,7 @@ use ferroclaw::config::Config;
 use ferroclaw::providers;
 use ferroclaw::providers::openrouter::is_openrouter_model;
 use ferroclaw::providers::zai::is_zai_model;
-use ferroclaw::types::{Message, ToolDefinition, TokenUsage};
+use ferroclaw::types::{Message, TokenUsage, ToolDefinition};
 
 // ── Model Routing ──────────────────────────────────────────────────
 
@@ -50,7 +50,10 @@ fn test_routing_priority_zai_first() {
     // Should fail because Zai is not configured, confirming it tried Zai first
     match result {
         Ok(_) => panic!("Expected error for unconfigured Zai provider"),
-        Err(e) => assert!(e.to_string().contains("Zai"), "Expected Zai error, got: {e}"),
+        Err(e) => assert!(
+            e.to_string().contains("Zai"),
+            "Expected Zai error, got: {e}"
+        ),
     }
 }
 
@@ -60,7 +63,10 @@ fn test_routing_priority_openrouter_second() {
     let result = providers::resolve_provider("openai/gpt-4o", &config);
     match result {
         Ok(_) => panic!("Expected error for unconfigured OpenRouter provider"),
-        Err(e) => assert!(e.to_string().contains("OpenRouter"), "Expected OpenRouter error, got: {e}"),
+        Err(e) => assert!(
+            e.to_string().contains("OpenRouter"),
+            "Expected OpenRouter error, got: {e}"
+        ),
     }
 }
 
@@ -82,7 +88,10 @@ fn test_routing_fallback_no_provider() {
     let result = providers::resolve_provider("random-model-xyz", &config);
     match result {
         Ok(_) => panic!("Expected error for unknown model with no fallback"),
-        Err(e) => assert!(e.to_string().contains("No provider configured"), "Expected fallback error, got: {e}"),
+        Err(e) => assert!(
+            e.to_string().contains("No provider configured"),
+            "Expected fallback error, got: {e}"
+        ),
     }
 }
 

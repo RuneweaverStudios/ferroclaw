@@ -7,7 +7,7 @@ use ferroclaw::skills::agentskills::{export_all, from_agentskills, import_all, t
 use ferroclaw::skills::bundled::bundled_skills;
 use ferroclaw::skills::executor::BashSkillHandler;
 use ferroclaw::skills::loader::load_and_register_skills;
-use ferroclaw::skills::manifest::{bash_skill, Param, SkillCategory, SkillManifest, SkillType};
+use ferroclaw::skills::manifest::{Param, SkillCategory, SkillManifest, SkillType, bash_skill};
 use ferroclaw::tool::ToolRegistry;
 use ferroclaw::types::Capability;
 
@@ -99,11 +99,7 @@ fn test_every_skill_has_at_least_one_capability() {
 fn test_every_skill_has_tags() {
     let skills = bundled_skills();
     for skill in &skills {
-        assert!(
-            !skill.tags.is_empty(),
-            "Skill '{}' has no tags",
-            skill.name
-        );
+        assert!(!skill.tags.is_empty(), "Skill '{}' has no tags", skill.name);
     }
 }
 
@@ -166,8 +162,7 @@ fn test_executor_with_empty_optional() {
 
 #[test]
 fn test_executor_multiple_optional_params() {
-    let handler =
-        BashSkillHandler::new("curl {{?method}} {{url}} {{?headers}} {{?data}}".into());
+    let handler = BashSkillHandler::new("curl {{?method}} {{url}} {{?headers}} {{?data}}".into());
     let args = serde_json::json!({"url": "https://example.com"});
     let result = handler.interpolate(&args).unwrap();
     assert_eq!(result, "curl https://example.com");
@@ -241,7 +236,11 @@ fn test_agentskills_roundtrip_preserves_all_fields() {
     for skill in &skills {
         let exported = to_agentskills(skill);
         let imported = from_agentskills(&exported);
-        assert_eq!(skill.name, imported.name, "Name mismatch for {}", skill.name);
+        assert_eq!(
+            skill.name, imported.name,
+            "Name mismatch for {}",
+            skill.name
+        );
         assert_eq!(
             skill.description, imported.description,
             "Description mismatch for {}",

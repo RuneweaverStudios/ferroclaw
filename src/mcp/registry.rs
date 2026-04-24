@@ -1,7 +1,7 @@
 //! Unified tool registry that merges MCP-discovered tools with built-in tools.
 
 use crate::mcp::client::McpClient;
-use crate::mcp::diet::{generate_skill_summary, render_all_summaries, SkillSummary};
+use crate::mcp::diet::{SkillSummary, generate_skill_summary, render_all_summaries};
 use crate::tool::ToolRegistry;
 use crate::types::ToolDefinition;
 

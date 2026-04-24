@@ -3,7 +3,7 @@
 //! Each skill is a bash-type tool that delegates to common CLI commands.
 //! The agent's LLM selects the right skill and provides arguments.
 
-use crate::skills::manifest::{bash_skill, Param, SkillCategory, SkillManifest};
+use crate::skills::manifest::{Param, SkillCategory, SkillManifest, bash_skill};
 use crate::types::Capability;
 
 /// Returns all bundled skill manifests.
@@ -146,7 +146,8 @@ fn version_control_skills() -> Vec<SkillManifest> {
             "cd '{{path}}' && git log {{?flags}} -n {{?count}}",
             &[
                 Param::required("path", "Repository path"),
-                Param::optional("flags", "Log flags (e.g. --oneline, --graph)").with_default("--oneline --graph"),
+                Param::optional("flags", "Log flags (e.g. --oneline, --graph)")
+                    .with_default("--oneline --graph"),
                 Param::optional("count", "Number of commits to show").with_default("20"),
             ],
             &[Capability::ProcessExec],
@@ -198,7 +199,8 @@ fn version_control_skills() -> Vec<SkillManifest> {
             "cd '{{path}}' && git stash {{?action}} {{?flags}}",
             &[
                 Param::required("path", "Repository path"),
-                Param::optional("action", "Stash action: push, pop, list, show, drop").with_default("push"),
+                Param::optional("action", "Stash action: push, pop, list, show, drop")
+                    .with_default("push"),
                 Param::optional("flags", "Additional flags (e.g. -m 'message')"),
             ],
             &[Capability::ProcessExec],
@@ -228,7 +230,7 @@ fn code_analysis_skills() -> Vec<SkillManifest> {
             "Search code files for a pattern using ripgrep or grep",
             SkillCategory::CodeAnalysis,
             &["grep", "search", "find", "regex"],
-            "cd '{{path}}' && (rg {{?flags}} '{{pattern}}' {{?glob}} 2>/dev/null || grep -rn '{{pattern}}' {{?glob}} .) | head -200",
+            "cd '{{path}}' && (rg {{?flags}} -g '{{?glob}}' '{{pattern}}' 2>/dev/null || grep -rn --include='{{?glob}}' '{{pattern}}' .) | head -200",
             &[
                 Param::required("path", "Directory to search"),
                 Param::required("pattern", "Search pattern (regex)"),
@@ -316,7 +318,10 @@ fn web_skills() -> Vec<SkillManifest> {
             "curl -sS {{?flags}} '{{url}}'",
             &[
                 Param::required("url", "URL to fetch"),
-                Param::optional("flags", "Curl flags (e.g. -H 'Accept: application/json' -v)"),
+                Param::optional(
+                    "flags",
+                    "Curl flags (e.g. -H 'Accept: application/json' -v)",
+                ),
             ],
             &[Capability::ProcessExec, Capability::NetOutbound],
         ),
@@ -329,7 +334,11 @@ fn web_skills() -> Vec<SkillManifest> {
             &[
                 Param::required("url", "URL to post to"),
                 Param::required("body", "Request body (JSON string)"),
-                Param::optional("flags", "Curl flags (e.g. -H 'Content-Type: application/json')").with_default("-H 'Content-Type: application/json'"),
+                Param::optional(
+                    "flags",
+                    "Curl flags (e.g. -H 'Content-Type: application/json')",
+                )
+                .with_default("-H 'Content-Type: application/json'"),
             ],
             &[Capability::ProcessExec, Capability::NetOutbound],
         ),
@@ -356,7 +365,11 @@ fn web_skills() -> Vec<SkillManifest> {
                 Param::required("output", "Output file path"),
                 Param::optional("flags", "Additional curl flags"),
             ],
-            &[Capability::ProcessExec, Capability::NetOutbound, Capability::FsWrite],
+            &[
+                Capability::ProcessExec,
+                Capability::NetOutbound,
+                Capability::FsWrite,
+            ],
         ),
         bash_skill(
             "check_url",
@@ -445,7 +458,10 @@ fn docker_skills() -> Vec<SkillManifest> {
             SkillCategory::Docker,
             &["docker", "containers", "list", "running"],
             "docker ps {{?flags}}",
-            &[Param::optional("flags", "Additional flags (e.g. -a for all, --format)")],
+            &[Param::optional(
+                "flags",
+                "Additional flags (e.g. -a for all, --format)",
+            )],
             &[Capability::ProcessExec],
         ),
         bash_skill(
@@ -456,7 +472,8 @@ fn docker_skills() -> Vec<SkillManifest> {
             "docker logs {{?flags}} '{{container}}'",
             &[
                 Param::required("container", "Container name or ID"),
-                Param::optional("flags", "Log flags (e.g. --tail 100, -f for follow)").with_default("--tail 100"),
+                Param::optional("flags", "Log flags (e.g. --tail 100, -f for follow)")
+                    .with_default("--tail 100"),
             ],
             &[Capability::ProcessExec],
         ),
@@ -482,7 +499,10 @@ fn docker_skills() -> Vec<SkillManifest> {
             &[
                 Param::required("path", "Build context directory"),
                 Param::required("tag", "Image tag (e.g. myapp:latest)"),
-                Param::optional("flags", "Build flags (e.g. --no-cache, --platform linux/amd64)"),
+                Param::optional(
+                    "flags",
+                    "Build flags (e.g. --no-cache, --platform linux/amd64)",
+                ),
             ],
             &[Capability::ProcessExec, Capability::FsRead],
         ),
@@ -492,7 +512,10 @@ fn docker_skills() -> Vec<SkillManifest> {
             SkillCategory::Docker,
             &["docker", "images", "list"],
             "docker images {{?flags}}",
-            &[Param::optional("flags", "Additional flags (e.g. --filter, --format)")],
+            &[Param::optional(
+                "flags",
+                "Additional flags (e.g. --filter, --format)",
+            )],
             &[Capability::ProcessExec],
         ),
         bash_skill(
@@ -503,7 +526,8 @@ fn docker_skills() -> Vec<SkillManifest> {
             "cd '{{path}}' && docker compose up {{?flags}}",
             &[
                 Param::required("path", "Directory with docker-compose.yml"),
-                Param::optional("flags", "Compose flags (e.g. -d for detached, --build)").with_default("-d"),
+                Param::optional("flags", "Compose flags (e.g. -d for detached, --build)")
+                    .with_default("-d"),
             ],
             &[Capability::ProcessExec],
         ),
@@ -521,7 +545,10 @@ fn kubernetes_skills() -> Vec<SkillManifest> {
             &["k8s", "kubernetes", "get", "list"],
             "kubectl get {{resource}} {{?flags}} {{?name}}",
             &[
-                Param::required("resource", "Resource type (pods, services, deployments, etc.)"),
+                Param::required(
+                    "resource",
+                    "Resource type (pods, services, deployments, etc.)",
+                ),
                 Param::optional("name", "Specific resource name"),
                 Param::optional("flags", "Additional flags (e.g. -n namespace, -o yaml)"),
             ],
@@ -548,7 +575,8 @@ fn kubernetes_skills() -> Vec<SkillManifest> {
             "kubectl logs {{pod}} {{?flags}}",
             &[
                 Param::required("pod", "Pod name"),
-                Param::optional("flags", "Log flags (e.g. --tail 100, -c container, -f)").with_default("--tail 100"),
+                Param::optional("flags", "Log flags (e.g. --tail 100, -c container, -f)")
+                    .with_default("--tail 100"),
             ],
             &[Capability::ProcessExec],
         ),
@@ -560,7 +588,10 @@ fn kubernetes_skills() -> Vec<SkillManifest> {
             "kubectl apply -f '{{file}}' {{?flags}}",
             &[
                 Param::required("file", "Path to manifest file or directory"),
-                Param::optional("flags", "Additional flags (e.g. -n namespace, --dry-run=client)"),
+                Param::optional(
+                    "flags",
+                    "Additional flags (e.g. -n namespace, --dry-run=client)",
+                ),
             ],
             &[Capability::ProcessExec, Capability::NetOutbound],
         ),
@@ -590,7 +621,10 @@ fn system_skills() -> Vec<SkillManifest> {
             SkillCategory::System,
             &["ps", "process", "list", "running"],
             "ps aux {{?flags}} | head -50",
-            &[Param::optional("flags", "Filter flags (pipe to grep, e.g. '| grep node')")],
+            &[Param::optional(
+                "flags",
+                "Filter flags (pipe to grep, e.g. '| grep node')",
+            )],
             &[Capability::ProcessExec],
         ),
         bash_skill(
@@ -609,7 +643,8 @@ fn system_skills() -> Vec<SkillManifest> {
             &["disk", "usage", "space", "du", "df"],
             "du -sh {{?path}} {{?flags}} 2>/dev/null | sort -rh | head -30",
             &[
-                Param::optional("path", "Path to analyze (default: current directory)").with_default("./*"),
+                Param::optional("path", "Path to analyze (default: current directory)")
+                    .with_default("./*"),
                 Param::optional("flags", "Additional flags"),
             ],
             &[Capability::ProcessExec],
@@ -748,7 +783,10 @@ fn network_skills() -> Vec<SkillManifest> {
                 Param::required("url", "URL to request"),
                 Param::optional("method", "HTTP method").with_default("GET"),
                 Param::optional("headers", "Headers (e.g. -H 'Authorization: Bearer xxx')"),
-                Param::optional("flags", "Additional curl flags (e.g. -d for body, -v for verbose)"),
+                Param::optional(
+                    "flags",
+                    "Additional curl flags (e.g. -d for body, -v for verbose)",
+                ),
             ],
             &[Capability::ProcessExec, Capability::NetOutbound],
         ),
@@ -760,7 +798,8 @@ fn network_skills() -> Vec<SkillManifest> {
             "(dig +short {{host}} {{?record_type}} 2>/dev/null || nslookup {{host}} 2>/dev/null || host {{host}} 2>/dev/null)",
             &[
                 Param::required("host", "Hostname to look up"),
-                Param::optional("record_type", "DNS record type (A, AAAA, MX, NS, TXT)").with_default("A"),
+                Param::optional("record_type", "DNS record type (A, AAAA, MX, NS, TXT)")
+                    .with_default("A"),
             ],
             &[Capability::ProcessExec, Capability::NetOutbound],
         ),
@@ -809,7 +848,8 @@ fn security_skills() -> Vec<SkillManifest> {
             "cd '{{path}}' && grep -rnE '(api[_-]?key|secret|password|token|credential|private[_-]?key)\\s*[:=]' --include='*.{{?ext}}' . 2>/dev/null | grep -v node_modules | grep -v '.git/' | head -50",
             &[
                 Param::required("path", "Directory to scan"),
-                Param::optional("ext", "File extension to filter (e.g. env, py, js)").with_default("*"),
+                Param::optional("ext", "File extension to filter (e.g. env, py, js)")
+                    .with_default("*"),
             ],
             &[Capability::ProcessExec],
         ),
@@ -852,7 +892,8 @@ fn documentation_skills() -> Vec<SkillManifest> {
             "wc {{?flags}} '{{path}}'",
             &[
                 Param::required("path", "File or glob pattern"),
-                Param::optional("flags", "wc flags (-w words, -l lines, -c bytes)").with_default("-lwc"),
+                Param::optional("flags", "wc flags (-w words, -l lines, -c bytes)")
+                    .with_default("-lwc"),
             ],
             &[Capability::ProcessExec],
         ),
@@ -959,9 +1000,7 @@ fn testing_skills() -> Vec<SkillManifest> {
             SkillCategory::Testing,
             &["watch", "test", "auto"],
             "cd '{{path}}' && (test -f Cargo.toml && cargo watch -x test 2>&1 || test -f package.json && npx jest --watch 2>&1 || test -f pyproject.toml && ptw 2>&1 || echo 'No watch mode available')",
-            &[
-                Param::required("path", "Project directory"),
-            ],
+            &[Param::required("path", "Project directory")],
             &[Capability::ProcessExec],
         ),
     ]
@@ -979,7 +1018,8 @@ fn package_management_skills() -> Vec<SkillManifest> {
             "cd '{{path}}' && npm list {{?flags}}",
             &[
                 Param::required("path", "Project directory"),
-                Param::optional("flags", "List flags (e.g. --depth=0, --json)").with_default("--depth=0"),
+                Param::optional("flags", "List flags (e.g. --depth=0, --json)")
+                    .with_default("--depth=0"),
             ],
             &[Capability::ProcessExec],
         ),
@@ -989,7 +1029,10 @@ fn package_management_skills() -> Vec<SkillManifest> {
             SkillCategory::PackageManagement,
             &["pip", "python", "packages"],
             "pip list {{?flags}}",
-            &[Param::optional("flags", "List flags (e.g. --outdated, --format=json)")],
+            &[Param::optional(
+                "flags",
+                "List flags (e.g. --outdated, --format=json)",
+            )],
             &[Capability::ProcessExec],
         ),
         bash_skill(
@@ -1000,7 +1043,8 @@ fn package_management_skills() -> Vec<SkillManifest> {
             "cd '{{path}}' && cargo tree {{?flags}}",
             &[
                 Param::required("path", "Project directory"),
-                Param::optional("flags", "Tree flags (e.g. --depth 1, -e features)").with_default("--depth 1"),
+                Param::optional("flags", "Tree flags (e.g. --depth 1, -e features)")
+                    .with_default("--depth 1"),
             ],
             &[Capability::ProcessExec],
         ),
@@ -1037,7 +1081,10 @@ fn cloud_skills() -> Vec<SkillManifest> {
             "aws s3 ls {{?path}} {{?flags}}",
             &[
                 Param::optional("path", "S3 path (e.g. s3://bucket/prefix/)"),
-                Param::optional("flags", "Additional flags (e.g. --recursive, --human-readable)"),
+                Param::optional(
+                    "flags",
+                    "Additional flags (e.g. --recursive, --human-readable)",
+                ),
             ],
             &[Capability::ProcessExec, Capability::NetOutbound],
         ),
@@ -1047,7 +1094,10 @@ fn cloud_skills() -> Vec<SkillManifest> {
             SkillCategory::Cloud,
             &["env", "check", "validate", "config"],
             "for var in {{vars}}; do if [ -n \"$(printenv $var)\" ]; then echo \"OK: $var is set\"; else echo \"MISSING: $var\"; fi; done",
-            &[Param::required("vars", "Space-separated list of variable names to check")],
+            &[Param::required(
+                "vars",
+                "Space-separated list of variable names to check",
+            )],
             &[Capability::ProcessExec],
         ),
         bash_skill(
@@ -1141,7 +1191,8 @@ fn media_skills() -> Vec<SkillManifest> {
             &[
                 Param::required("source", "Source file or directory"),
                 Param::required("output", "Output archive path"),
-                Param::optional("format", "Archive command (tar czf or zip -r)").with_default("tar czf"),
+                Param::optional("format", "Archive command (tar czf or zip -r)")
+                    .with_default("tar czf"),
                 Param::optional("flags", "Additional flags"),
             ],
             &[Capability::ProcessExec, Capability::FsWrite],
@@ -1187,11 +1238,7 @@ mod tests {
     fn test_unique_names() {
         let skills = bundled_skills();
         let names: HashSet<&str> = skills.iter().map(|s| s.name.as_str()).collect();
-        assert_eq!(
-            names.len(),
-            skills.len(),
-            "Duplicate skill names detected"
-        );
+        assert_eq!(names.len(), skills.len(), "Duplicate skill names detected");
     }
 
     #[test]
