@@ -56,29 +56,11 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
     }
 }
 
-fn hard_wrap_preserve_spaces(text: &str, width: usize) -> Vec<String> {
+fn clip_preserve_spaces(text: &str, width: usize) -> String {
     if width == 0 {
-        return vec![String::new()];
+        return String::new();
     }
-
-    if text.is_empty() {
-        return vec![String::new()];
-    }
-
-    let chars: Vec<char> = text.chars().collect();
-    let mut out = Vec::new();
-    let mut i = 0usize;
-    while i < chars.len() {
-        let end = (i + width).min(chars.len());
-        out.push(chars[i..end].iter().collect());
-        i = end;
-    }
-
-    if out.is_empty() {
-        out.push(String::new());
-    }
-
-    out
+    text.chars().take(width).collect()
 }
 
 fn wrap_to_width(text: &str, width: usize) -> Vec<String> {
@@ -201,13 +183,12 @@ fn draw_chat(frame: &mut Frame, app: &mut App, area: Rect) {
     let inner_width = area.width.saturating_sub(4) as usize;
     let mut lines: Vec<Line> = Vec::new();
 
+    let banner_width = area.width as usize;
     for banner in BANNER_LINES {
-        for seg in hard_wrap_preserve_spaces(banner, inner_width.max(1)) {
-            lines.push(Line::from(Span::styled(
-                seg,
-                Style::default().fg(TITLE).add_modifier(Modifier::BOLD),
-            )));
-        }
+        lines.push(Line::from(Span::styled(
+            clip_preserve_spaces(banner, banner_width.max(1)),
+            Style::default().fg(TITLE).add_modifier(Modifier::BOLD),
+        )));
     }
     lines.push(Line::from(Span::styled(
         format!("Ferroclaw v{} · /help · /model", env!("CARGO_PKG_VERSION")),
